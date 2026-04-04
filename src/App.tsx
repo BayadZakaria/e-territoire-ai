@@ -80,7 +80,7 @@ const Navbar = ({ user, onLogout }: { user: UserProfile | null, onLogout: () => 
         {user ? (
           <div className={cn("flex items-center gap-4", isRtl ? "flex-row-reverse" : "flex-row")}>
             <div className={cn("flex flex-col", isRtl ? "items-end" : "items-start")}>
-              <span className="text-slate-800 text-sm font-bold">{user.name} {user.surname}</span>
+              <span className="text-slate-800 text-sm font-bold">{user.full_name}</span>
               <span className="text-[var(--color-majorelle)] text-[10px] uppercase font-black">{t(user.role)}</span>
             </div>
             <button 
@@ -243,14 +243,10 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
         if (isHardcodedAdmin) {
           onLogin({
             id: '1',
-            name: 'Zakaria',
-            surname: 'Bayad',
-            email: cleanEmail,
-            phone: '0600000000',
+            full_name: 'Zakaria Bayad',
             role: 'super_admin',
             city: 'Rabat',
             is_approved: true,
-            status: 'active',
             created_at: new Date().toISOString()
           });
         } else {
@@ -284,7 +280,7 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
 
         if (profileError) throw profileError;
 
-        if (profile.status === 'pending') {
+        if (!profile.is_approved) {
           throw new Error('Votre compte est en attente de validation par un administrateur.');
         }
 
@@ -405,15 +401,10 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
       setTimeout(() => {
         onRegister({
           id: Math.random().toString(36).substr(2, 9),
-          email: formData.email,
-          name: formData.name,
-          surname: formData.surname,
-          phone: formData.phone,
-          cnie: role !== 'citizen' ? formData.cnie : undefined,
+          full_name: formData.name + ' ' + formData.surname,
           city: formData.city,
           role,
           is_approved: role === 'citizen',
-          status: role === 'citizen' ? 'active' : 'pending',
           created_at: new Date().toISOString()
         });
         setLoading(false);
@@ -426,13 +417,9 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: import.meta.env.VITE_APP_URL || window.location.origin,
           data: {
-            name: formData.name,
-            surname: formData.surname,
-            phone: formData.phone,
-            cnie: role !== 'citizen' ? formData.cnie : null,
-            grade: (role === 'official' || role === 'admin_central') ? formData.grade : null,
-            matricule: (role === 'official' || role === 'admin_central') ? formData.matricule : null,
+            full_name: formData.name + ' ' + formData.surname,
             city: formData.city,
             role: role
           }
@@ -451,7 +438,7 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
             .single();
           
           if (profile) {
-            if (profile.status === 'pending') {
+            if (!profile.is_approved) {
               setError('Votre compte a été créé et est en attente de validation par un administrateur.');
             } else {
               onRegister(profile as UserProfile);
@@ -501,7 +488,7 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
         )}
 
         <div className="flex flex-wrap gap-2 mb-8 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
-          {(['citizen', 'official', 'admin_central', 'super_admin'] as UserRole[]).map((r) => (
+          {(['citizen', 'fonctionnaire', 'admin_central', 'super_admin'] as UserRole[]).map((r) => (
             <button 
               key={r}
               type="button"
@@ -533,30 +520,6 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('password')}</label>
             <input type="password" name="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('phone')}</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-          </div>
-          
-          {role !== 'citizen' && (
-            <div className="space-y-2 md:col-span-2">
-              <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>CNIE (Obligatoire)</label>
-              <input type="text" name="cnie" value={formData.cnie} onChange={handleChange} required placeholder="Ex: AB123456" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-            </div>
-          )}
-          
-          {(role === 'official' || role === 'admin_central') && (
-            <>
-              <div className="space-y-2">
-                <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('grade')}</label>
-                <input name="grade" value={formData.grade} onChange={handleChange} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-              </div>
-              <div className="space-y-2">
-                <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('matricule')}</label>
-                <input name="matricule" value={formData.matricule} onChange={handleChange} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-              </div>
-            </>
-          )}
 
           <div className="space-y-2 md:col-span-2">
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('city')}</label>
@@ -591,7 +554,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
       { id: 'legal', label: t('legal_vulgarization'), icon: Search }
     ];
 
-    if (user.role === 'official' || user.role === 'admin_central' || user.role === 'super_admin') {
+    if (user.role === 'fonctionnaire' || user.role === 'admin_central' || user.role === 'super_admin') {
       baseTabs.splice(1, 0, { id: 'scan', label: t('scan_doc'), icon: Camera });
       baseTabs.splice(2, 0, { id: 'generate', label: t('generate_doc'), icon: FileOutput });
     }
@@ -619,7 +582,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
         { title: "Statistiques Locales", icon: LayoutDashboard, color: "bg-[var(--color-majorelle)]", desc: `Activité de la commune de ${user.city}.`, value: "Active" }
       ];
     }
-    if (user.role === 'official') {
+    if (user.role === 'fonctionnaire') {
       return [
         { title: t('procedures'), icon: FileText, color: "bg-[var(--color-majorelle)]", desc: "Suivi des dossiers et formalités.", value: "14 Dossiers" },
         { title: t('urbanism'), icon: Building2, color: "bg-emerald-600", desc: "Autorisations et plans d'aménagement.", value: "3 En cours" },
@@ -667,7 +630,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
               <User className="w-5 h-5 text-[var(--color-majorelle)]" />
             </div>
             <div className={cn("flex flex-col", isRtl ? "items-end" : "items-start")}>
-              <span className="text-slate-800 font-bold text-sm">{user.name}</span>
+              <span className="text-slate-800 font-bold text-sm">{user.full_name}</span>
               <span className="text-slate-500 text-xs">{user.id.padStart(8, '0')}</span>
             </div>
           </div>
@@ -683,7 +646,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
           <header className={cn("flex flex-col md:flex-row justify-between items-start md:items-center gap-6", isRtl ? "flex-row-reverse" : "flex-row")}>
             <div className={cn("flex flex-col gap-2", isRtl ? "items-end" : "items-start")}>
               <h1 className="text-4xl font-black text-[var(--color-majorelle-dark)] font-tech">{t('dashboard')}</h1>
-              <p className="text-slate-600 font-medium">Bienvenue, {user.name}. Espace <span className="text-[var(--color-majorelle)] font-bold">{t(user.role)}</span> de {user.city}.</p>
+              <p className="text-slate-600 font-medium">Bienvenue, {user.full_name}. Espace <span className="text-[var(--color-majorelle)] font-bold">{t(user.role)}</span> de {user.city}.</p>
             </div>
           </header>
 
