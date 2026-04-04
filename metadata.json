@@ -1,0 +1,7 @@
+{
+  "name": "Remix: e-Territoire AI",
+  "description": "Plateforme SaaS de gouvernance numérique pour l\u0027administration territoriale marocaine (Loi 113.14, Urbanisme, État Civil).",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
