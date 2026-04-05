@@ -2,20 +2,32 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { FileOutput, Download, CheckCircle2, Shield, QrCode, FileText } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { generateDocumentDraft } from '../services/aiService';
+import ReactMarkdown from 'react-markdown';
 
 export const DocumentGenerator = () => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const [generating, setGenerating] = useState(false);
-  const [docType, setDocType] = useState('attestation');
+  const [docType, setDocType] = useState('Attestation Administrative');
+  const [details, setDetails] = useState('');
   const [preview, setPreview] = useState(false);
+  const [generatedContent, setGeneratedContent] = useState('');
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
+    if (!details.trim() && !docType) return;
     setGenerating(true);
-    setTimeout(() => {
-      setGenerating(false);
+    try {
+      const content = await generateDocumentDraft(docType, details, i18n.language);
+      setGeneratedContent(content || "Erreur lors de la génération.");
       setPreview(true);
-    }, 2000);
+    } catch (error) {
+      console.error(error);
+      setGeneratedContent("Une erreur est survenue lors de la génération du document.");
+      setPreview(true);
+    } finally {
+      setGenerating(false);
+    }
   };
 
   return (
@@ -36,15 +48,17 @@ export const DocumentGenerator = () => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Type de Document
             </label>
-            <select 
+            <select
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all"
             >
-              <option value="attestation">Attestation Administrative</option>
-              <option value="permis">Permis de Construire (Draft)</option>
-              <option value="acte">Acte d'État Civil</option>
-              <option value="arrete">Arrêté Municipal</option>
+              <option value="Attestation Administrative">Attestation Administrative</option>
+              <option value="Permis de Construire (Draft)">Permis de Construire (Draft)</option>
+              <option value="Acte d'État Civil">Acte d'État Civil</option>
+              <option value="Arrêté Municipal">Arrêté Municipal</option>
+              <option value="Rapport de Synthèse">Rapport de Synthèse</option>
+              <option value="Procès-verbal">Procès-verbal</option>
             </select>
           </div>
 
@@ -52,16 +66,18 @@ export const DocumentGenerator = () => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Informations Complémentaires
             </label>
-            <textarea 
+            <textarea
               rows={4}
+              value={details}
+              onChange={(e) => setDetails(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all resize-none"
-              placeholder="Détails spécifiques à inclure dans le document..."
+              placeholder="Détails spécifiques à inclure dans le document (ex: Nom, CIN, motif)..."
             />
           </div>
 
-          <button 
+          <button
             onClick={handleGenerate}
-            disabled={generating}
+            disabled={generating || !details.trim()}
             className="w-full py-4 bg-[var(--color-majorelle)] text-white rounded-xl font-bold hover:bg-[var(--color-majorelle-dark)] transition-all shadow-xl shadow-[var(--color-majorelle)]/20 disabled:opacity-50 flex items-center justify-center gap-3"
           >
             {generating ? (
@@ -103,12 +119,11 @@ export const DocumentGenerator = () => {
                 <div className="h-0.5 w-16 bg-[var(--color-saffron)] mx-auto" />
               </div>
 
-              <div className="space-y-4 text-xs leading-relaxed text-slate-700">
-                <p className="font-bold italic text-slate-900">Vu le Dahir n° 1-15-85 du 20 ramadan 1436 (7 juillet 2015) portant promulgation de la loi organique n° 113-14 relative aux communes.</p>
-                <p>Le Président du Conseil de la Commune de Casablanca, après examen du dossier n° 2026/04/001, certifie par la présente que les conditions requises sont remplies pour l'établissement de cet acte administratif.</p>
+              <div className="space-y-4 text-xs leading-relaxed text-slate-700 markdown-body">
+                <ReactMarkdown>{generatedContent}</ReactMarkdown>
               </div>
 
-              <div className="mt-auto flex justify-between items-end">
+              <div className="mt-auto flex justify-between items-end pt-8">
                 <div className="flex flex-col gap-2">
                   <div className="w-16 h-16 bg-slate-50 rounded border border-slate-200 flex items-center justify-center">
                     <QrCode className="text-slate-400 w-10 h-10" />
@@ -116,7 +131,7 @@ export const DocumentGenerator = () => {
                   <span className="text-[6px] text-slate-400">Vérification: e-Territoire.ma/verify/12345</span>
                 </div>
                 <div className="text-right space-y-1">
-                  <p className="text-[8px] font-bold text-slate-600">Fait à Casablanca, le 04/04/2026</p>
+                  <p className="text-[8px] font-bold text-slate-600">Fait le {new Date().toLocaleDateString('fr-FR')}</p>
                   <div className="w-24 h-12 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50">
                     <span className="text-[8px] text-slate-400 italic">Signature Digitale</span>
                   </div>
@@ -127,7 +142,7 @@ export const DocumentGenerator = () => {
                 <h1 className="text-8xl font-black text-[var(--color-majorelle)]">DRAFT</h1>
               </div>
 
-              <div className="absolute bottom-4 right-4">
+              <div className="absolute bottom-4 right-4 z-10">
                 <button className="p-3 bg-[var(--color-majorelle)] text-white rounded-full shadow-xl hover:scale-110 transition-transform">
                   <Download className="w-5 h-5" />
                 </button>
