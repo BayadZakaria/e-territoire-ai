@@ -6,6 +6,40 @@ import { cn } from '../lib/utils';
 import { useTranslation } from 'react-i18next';
 import { supabase, isSupabaseConfigured } from '../supabase';
 
+// Mock data for pending users
+const MOCK_PENDING_USERS: UserProfile[] = [
+  {
+    id: 'usr_1',
+    name: 'Ahmed',
+    surname: 'Benali',
+    email: 'ahmed.benali@gov.ma',
+    phone: '+212600000001',
+    cnie: 'AB123456',
+    city: 'casablanca',
+    role: 'official',
+    is_approved: false,
+    status: 'pending',
+    created_at: new Date().toISOString(),
+    grade: 'Administrateur 2ème grade',
+    matricule: '1234567'
+  },
+  {
+    id: 'usr_2',
+    name: 'Fatima',
+    surname: 'Zahra',
+    email: 'fatima.zahra@gov.ma',
+    phone: '+212600000002',
+    cnie: 'CD789012',
+    city: 'rabat',
+    role: 'admin_central',
+    is_approved: false,
+    status: 'pending',
+    created_at: new Date().toISOString(),
+    grade: 'Gouverneur',
+    matricule: '7654321'
+  }
+];
+
 export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
@@ -18,18 +52,31 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
     setError('');
     
     if (!isSupabaseConfigured()) {
-      setPendingUsers([]);
-      setLoading(false);
+      // Fallback to mock data
+      setTimeout(() => {
+        setPendingUsers(MOCK_PENDING_USERS);
+        setLoading(false);
+      }, 500);
       return;
     }
 
     try {
-      // The RLS policies automatically filter what the user can see.
-      // We just need to query for users who are not approved.
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('profiles')
         .select('*')
-        .eq('is_approved', false);
+        .eq('status', 'pending');
+
+      if (currentUser.role === 'super_admin') {
+        query = query.eq('role', 'admin_central');
+      } else if (currentUser.role === 'admin_central') {
+        query = query.eq('role', 'official').eq('city', currentUser.city);
+      } else {
+        setPendingUsers([]);
+        setLoading(false);
+        return;
+      }
+
+      const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
       setPendingUsers(data as UserProfile[]);
@@ -44,6 +91,17 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
     fetchPendingUsers();
   }, [currentUser]);
 
+  // Filter users based on RBAC (mainly for mock data, Supabase query already filters)
+  const visibleUsers = pendingUsers.filter(user => {
+    if (currentUser.role === 'super_admin') {
+      return user.role === 'admin_central';
+    }
+    if (currentUser.role === 'admin_central') {
+      return user.role === 'official' && user.city === currentUser.city;
+    }
+    return false;
+  });
+
   const handleApprove = async (userId: string) => {
     if (!isSupabaseConfigured()) {
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
@@ -53,18 +111,10 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
     try {
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ is_approved: true })
+        .update({ status: 'active', is_approved: true })
         .eq('id', userId);
 
       if (updateError) throw updateError;
-      
-      // Email Notification Explanation:
-      // To trigger an email notification upon approval, you can:
-      // 1. Create a Supabase Edge Function that listens to database webhooks (UPDATE on public.profiles where is_approved changes to true).
-      // 2. The Edge Function can use a service like Resend or SendGrid to send an email to the user's email address (fetched from auth.users).
-      // 3. Alternatively, you can call an API endpoint directly from this React component after a successful update, passing the user ID to trigger the email.
-      console.log(`User ${userId} approved. Trigger email notification here.`);
-
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
     } catch (err: any) {
       alert('Erreur lors de la validation: ' + err.message);
@@ -78,14 +128,12 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
     }
 
     try {
-      // In a real app, you might want to delete the profile or mark it as rejected.
-      // For now, we'll just remove it from the list.
-      const { error: deleteError } = await supabase
+      const { error: updateError } = await supabase
         .from('profiles')
-        .delete()
+        .update({ status: 'pending_deletion', is_approved: false })
         .eq('id', userId);
 
-      if (deleteError) throw deleteError;
+      if (updateError) throw updateError;
       setPendingUsers(prev => prev.filter(u => u.id !== userId));
     } catch (err: any) {
       alert('Erreur lors du rejet: ' + err.message);
@@ -107,7 +155,7 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
             <h2 className="text-2xl font-black text-[var(--color-majorelle-dark)] font-tech">Validation des Comptes</h2>
             <p className="text-slate-500 text-sm">
               {currentUser.role === 'super_admin' 
-                ? "Gestion de tous les comptes en attente" 
+                ? "Gestion des Administrateurs Centraux (Gouverneurs)" 
                 : `Gestion des Fonctionnaires - ${currentUser.city}`}
             </p>
           </div>
@@ -129,7 +177,7 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
 
       {!isSupabaseConfigured() && (
         <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-yellow-700 text-sm">
-          Mode Démo : Supabase n'est pas configuré.
+          Mode Démo : Supabase n'est pas configuré. Les données sont simulées.
         </div>
       )}
 
@@ -138,7 +186,7 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
           <RefreshCw className="w-10 h-10 text-[var(--color-majorelle)]/50 mb-4 animate-spin" />
           <h3 className="text-xl font-bold text-slate-800 mb-2 font-tech">Chargement...</h3>
         </div>
-      ) : pendingUsers.length === 0 ? (
+      ) : visibleUsers.length === 0 ? (
         <div className="bg-white border border-slate-200 rounded-3xl p-12 text-center flex flex-col items-center justify-center shadow-sm">
           <CheckCircle className="w-16 h-16 text-emerald-500/50 mb-4" />
           <h3 className="text-xl font-bold text-slate-800 mb-2 font-tech">Aucune demande en attente</h3>
@@ -146,7 +194,7 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
         </div>
       ) : (
         <div className="grid gap-4">
-          {pendingUsers.map((user) => (
+          {visibleUsers.map((user) => (
             <motion.div 
               key={user.id}
               initial={{ opacity: 0, y: 10 }}
@@ -159,7 +207,7 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
                 </div>
                 <div className={cn("flex flex-col", isRtl ? "items-end" : "items-start")}>
                   <div className={cn("flex items-center gap-2 mb-1", isRtl ? "flex-row-reverse" : "flex-row")}>
-                    <h3 className="text-lg font-bold text-slate-800">{user.full_name}</h3>
+                    <h3 className="text-lg font-bold text-slate-800">{user.name} {user.surname}</h3>
                     <span className="px-2 py-0.5 rounded-full bg-[var(--color-majorelle)]/10 text-[var(--color-majorelle)] text-xs font-bold uppercase tracking-wider">
                       {t(user.role)}
                     </span>
@@ -168,6 +216,18 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
                     <div className={cn("flex items-center gap-2 text-slate-500 text-sm", isRtl ? "flex-row-reverse" : "flex-row")}>
                       <MapPin className="w-4 h-4" />
                       <span className="capitalize">{user.city}</span>
+                    </div>
+                    <div className={cn("flex items-center gap-2 text-slate-500 text-sm", isRtl ? "flex-row-reverse" : "flex-row")}>
+                      <Briefcase className="w-4 h-4" />
+                      <span>{user.grade || 'N/A'} (Matricule: {user.matricule || 'N/A'})</span>
+                    </div>
+                    <div className={cn("flex items-center gap-2 text-slate-500 text-sm", isRtl ? "flex-row-reverse" : "flex-row")}>
+                      <span className="font-bold text-slate-600">CNIE:</span>
+                      <span className="text-slate-800">{user.cnie}</span>
+                    </div>
+                    <div className={cn("flex items-center gap-2 text-slate-500 text-sm", isRtl ? "flex-row-reverse" : "flex-row")}>
+                      <span className="font-bold text-slate-600">Email:</span>
+                      <span>{user.email}</span>
                     </div>
                   </div>
                 </div>
@@ -196,4 +256,3 @@ export const UserValidation = ({ currentUser }: { currentUser: UserProfile }) =>
     </div>
   );
 };
-
