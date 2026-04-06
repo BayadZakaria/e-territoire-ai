@@ -75,6 +75,11 @@ USING (
   AND profiles.role = 'official'
 );
 
+-- Policy: Users can delete their own profile
+CREATE POLICY "Users can delete own profile" 
+ON public.profiles FOR DELETE 
+USING (auth.uid() = id);
+
 -- 6. Create RLS Policies for scanned_documents
 
 -- Policy: Users can read their own documents
@@ -128,3 +133,57 @@ DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
 CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
+
+-- =================================================================================
+-- RAG System (Retrieval-Augmented Generation)
+-- =================================================================================
+
+-- 8. Enable the pgvector extension
+CREATE EXTENSION IF NOT EXISTS vector;
+
+-- 9. Create the document_chunks table
+CREATE TABLE public.document_chunks (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  document_name TEXT NOT NULL,
+  content TEXT NOT NULL,
+  embedding vector(768),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
+);
+
+-- 10. Enable RLS on document_chunks
+ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
+
+-- Policy: Anyone can read document chunks (or restrict as needed)
+CREATE POLICY "Users can view document chunks" 
+ON public.document_chunks FOR SELECT 
+USING (true);
+
+-- Policy: Users can insert document chunks
+CREATE POLICY "Users can insert document chunks" 
+ON public.document_chunks FOR INSERT 
+WITH CHECK (true);
+
+-- 11. Create the match_documents RPC function for similarity search
+CREATE OR REPLACE FUNCTION match_documents (
+  query_embedding vector(768),
+  match_threshold float,
+  match_count int
+)
+RETURNS TABLE (
+  id uuid,
+  document_name text,
+  content text,
+  similarity float
+)
+LANGUAGE sql STABLE
+AS $$
+  SELECT
+    document_chunks.id,
+    document_chunks.document_name,
+    document_chunks.content,
+    1 - (document_chunks.embedding <=> query_embedding) AS similarity
+  FROM document_chunks
+  WHERE 1 - (document_chunks.embedding <=> query_embedding) > match_threshold
+  ORDER BY document_chunks.embedding <=> query_embedding
+  LIMIT match_count;
+$$;

@@ -1,27 +1,20 @@
-export type UserRole = 'citizen' | 'official' | 'admin_central' | 'super_admin';
+export type UserRole = 'super_admin' | 'admin_central' | 'fonctionnaire' | 'citizen';
+export type UserStatus = 'pending' | 'active' | 'pending_deletion';
 
 export interface UserProfile {
   id: string;
-  name: string;
-  surname: string;
-  email: string;
-  phone: string;
+  full_name: string;
+  name?: string;
+  surname?: string;
+  email?: string;
+  phone?: string;
   cnie?: string;
   grade?: string;
   matricule?: string;
-  city: string;
   role: UserRole;
+  status?: UserStatus;
   is_approved: boolean;
-  status?: 'pending' | 'active' | 'pending_deletion';
+  city: string;
   created_at: string;
 }
 
-export interface ScannedDocument {
-  id: string;
-  user_id: string;
-  file_url: string;
-  extracted_data: any;
-  doc_type: string;
-  status: 'pending' | 'processed' | 'failed';
-  created_at: string;
-}

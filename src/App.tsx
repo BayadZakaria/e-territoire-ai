@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Menu, X, Globe, User, LogOut, LayoutDashboard, 
+import {
+  Menu, X, Globe, User, LogOut, LayoutDashboard,
   FileText, Shield, Map, Building2, Search, Bell,
   Camera, FileSearch, FileOutput, CheckCircle2, Clock, QrCode, Activity
 } from 'lucide-react';
@@ -15,6 +15,7 @@ import { DocumentGenerator } from './components/DocumentGenerator';
 import { LegalAssistant } from './components/LegalAssistant';
 import { UserValidation } from './components/UserValidation';
 import { MoroccoMap } from './components/MoroccoMap';
+import { ProfilePage } from './components/ProfilePage';
 
 // --- Components ---
 
@@ -35,8 +36,8 @@ const LanguageSwitcher = () => {
           onClick={() => i18n.changeLanguage(lang.code)}
           className={cn(
             "px-3 py-1 text-xs font-bold rounded transition-all",
-            i18n.language === lang.code 
-              ? "bg-[var(--color-majorelle)] text-white shadow-md" 
+            i18n.language === lang.code
+              ? "bg-[var(--color-majorelle)] text-white shadow-md"
               : "text-slate-600 hover:text-[var(--color-majorelle)] hover:bg-white/50"
           )}
         >
@@ -59,7 +60,7 @@ const Navbar = ({ user, onLogout }: { user: UserProfile | null, onLogout: () => 
       <Link to="/" className={cn("flex items-center gap-3 hover:opacity-80 transition-opacity", isRtl ? "flex-row-reverse" : "flex-row")}>
         <div className="w-10 h-10 bg-[var(--color-moroccan-red)] rounded-xl flex items-center justify-center shadow-lg shadow-[var(--color-moroccan-red)]/20 border border-white/50 relative overflow-hidden">
           <svg viewBox="0 0 100 100" className="w-8 h-8 text-[var(--color-moroccan-green)] absolute opacity-20">
-            <polygon points="50,5 61,39 97,39 68,60 79,95 50,74 21,95 32,60 3,39 39,39" fill="none" stroke="currentColor" strokeWidth="4"/>
+            <polygon points="50,5 61,39 97,39 68,60 79,95 50,74 21,95 32,60 3,39 39,39" fill="none" stroke="currentColor" strokeWidth="4" />
           </svg>
           <Shield className="text-[var(--color-saffron)] w-6 h-6 relative z-10" />
         </div>
@@ -80,10 +81,10 @@ const Navbar = ({ user, onLogout }: { user: UserProfile | null, onLogout: () => 
         {user ? (
           <div className={cn("flex items-center gap-4", isRtl ? "flex-row-reverse" : "flex-row")}>
             <div className={cn("flex flex-col", isRtl ? "items-end" : "items-start")}>
-              <span className="text-slate-800 text-sm font-bold">{user.name} {user.surname}</span>
+              <span className="text-slate-800 text-sm font-bold">{user.full_name}</span>
               <span className="text-[var(--color-majorelle)] text-[10px] uppercase font-black">{t(user.role)}</span>
             </div>
-            <button 
+            <button
               onClick={onLogout}
               className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-full transition-all"
             >
@@ -91,8 +92,8 @@ const Navbar = ({ user, onLogout }: { user: UserProfile | null, onLogout: () => 
             </button>
           </div>
         ) : (
-          <Link 
-            to="/login" 
+          <Link
+            to="/login"
             className="px-6 py-2 bg-[var(--color-majorelle)] text-white rounded-full text-sm font-bold hover:bg-[var(--color-majorelle-dark)] transition-all shadow-lg shadow-[var(--color-majorelle)]/20 border border-white/10"
           >
             {t('login')}
@@ -117,7 +118,7 @@ const LandingPage = () => {
       <div className="absolute inset-0 zellij-pattern opacity-30 pointer-events-none" />
 
       <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center relative z-10">
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: isRtl ? 50 : -50 }}
           animate={{ opacity: 1, x: 0 }}
           className={cn("flex flex-col gap-8", isRtl ? "text-right" : "text-left")}
@@ -160,13 +161,13 @@ const LandingPage = () => {
           </div>
         </motion.div>
 
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
           className="relative"
         >
           <div className="aspect-square bg-gradient-to-br from-[var(--color-majorelle)]/5 to-[var(--color-moroccan-green)]/5 moorish-arch border border-[var(--color-majorelle)]/10 p-8 relative overflow-hidden group">
-            
+
             {/* Mock Dashboard UI */}
             <div className="relative z-10 bg-white/90 backdrop-blur-xl border border-slate-200 rounded-2xl p-6 shadow-2xl transform group-hover:rotate-1 transition-transform duration-700 mt-12">
               <div className="flex items-center justify-between mb-8">
@@ -180,7 +181,7 @@ const LandingPage = () => {
                   Live: Tanger-Tétouan-Al Hoceïma
                 </div>
               </div>
-              
+
               <div className="space-y-4">
                 {[1, 2, 3].map((_, i) => (
                   <div key={i} className="h-12 bg-slate-50 rounded-xl border border-slate-100 flex items-center px-4 gap-4">
@@ -198,14 +199,14 @@ const LandingPage = () => {
             </div>
 
             {/* Floating Elements */}
-            <motion.div 
+            <motion.div
               animate={{ y: [0, -20, 0] }}
               transition={{ duration: 4, repeat: Infinity }}
               className="absolute top-20 right-10 bg-[var(--color-moroccan-green)] p-4 rounded-2xl shadow-2xl z-20"
             >
               <CheckCircle2 className="text-white w-8 h-8" />
             </motion.div>
-            <motion.div 
+            <motion.div
               animate={{ y: [0, 20, 0] }}
               transition={{ duration: 5, repeat: Infinity }}
               className="absolute bottom-10 left-10 bg-white p-4 rounded-2xl shadow-2xl z-20 border border-slate-200"
@@ -243,14 +244,10 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
         if (isHardcodedAdmin) {
           onLogin({
             id: '1',
-            name: 'Zakaria',
-            surname: 'Bayad',
-            email: cleanEmail,
-            phone: '0600000000',
+            full_name: 'Zakaria Bayad',
             role: 'super_admin',
             city: 'Rabat',
             is_approved: true,
-            status: 'active',
             created_at: new Date().toISOString()
           });
         } else {
@@ -284,7 +281,7 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
 
         if (profileError) throw profileError;
 
-        if (profile.status === 'pending') {
+        if (!profile.is_approved) {
           throw new Error('Votre compte est en attente de validation par un administrateur.');
         }
 
@@ -300,8 +297,8 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
   return (
     <div className="min-h-screen bg-[var(--color-alabaster)] flex items-center justify-center p-6 relative overflow-hidden">
       <div className="absolute inset-0 zellij-pattern opacity-30 pointer-events-none" />
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-md bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl relative z-10"
@@ -328,8 +325,8 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               {t('email')}
             </label>
-            <input 
-              type="email" 
+            <input
+              type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -341,8 +338,8 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Mot de passe
             </label>
-            <input 
-              type="password" 
+            <input
+              type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -350,7 +347,7 @@ const LoginPage = ({ onLogin }: { onLogin: (user: UserProfile) => void }) => {
               placeholder="••••••••"
             />
           </div>
-          <button 
+          <button
             disabled={loading}
             className="w-full py-4 bg-[var(--color-majorelle)] text-white rounded-xl font-bold hover:bg-[var(--color-majorelle-dark)] transition-all shadow-xl shadow-[var(--color-majorelle)]/20 disabled:opacity-50"
           >
@@ -405,15 +402,10 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
       setTimeout(() => {
         onRegister({
           id: Math.random().toString(36).substr(2, 9),
-          email: formData.email,
-          name: formData.name,
-          surname: formData.surname,
-          phone: formData.phone,
-          cnie: role !== 'citizen' ? formData.cnie : undefined,
+          full_name: formData.name + ' ' + formData.surname,
           city: formData.city,
           role,
           is_approved: role === 'citizen',
-          status: role === 'citizen' ? 'active' : 'pending',
           created_at: new Date().toISOString()
         });
         setLoading(false);
@@ -426,13 +418,9 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: import.meta.env.VITE_APP_URL || window.location.origin,
           data: {
-            name: formData.name,
-            surname: formData.surname,
-            phone: formData.phone,
-            cnie: role !== 'citizen' ? formData.cnie : null,
-            grade: (role === 'official' || role === 'admin_central') ? formData.grade : null,
-            matricule: (role === 'official' || role === 'admin_central') ? formData.matricule : null,
+            full_name: formData.name + ' ' + formData.surname,
             city: formData.city,
             role: role
           }
@@ -449,9 +437,9 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
             .select('*')
             .eq('id', authData.user.id)
             .single();
-          
+
           if (profile) {
-            if (profile.status === 'pending') {
+            if (!profile.is_approved) {
               setError('Votre compte a été créé et est en attente de validation par un administrateur.');
             } else {
               onRegister(profile as UserProfile);
@@ -471,8 +459,8 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
   return (
     <div className="min-h-screen bg-[var(--color-alabaster)] flex items-center justify-center p-6 pt-24 relative overflow-hidden">
       <div className="absolute inset-0 zellij-pattern opacity-30 pointer-events-none" />
-      
-      <motion.div 
+
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         className="w-full max-w-2xl bg-white border border-slate-200 rounded-3xl p-8 shadow-2xl relative z-10"
@@ -501,8 +489,8 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
         )}
 
         <div className="flex flex-wrap gap-2 mb-8 bg-slate-50 p-1.5 rounded-2xl border border-slate-200">
-          {(['citizen', 'official', 'admin_central', 'super_admin'] as UserRole[]).map((r) => (
-            <button 
+          {(['citizen', 'fonctionnaire', 'admin_central', 'super_admin'] as UserRole[]).map((r) => (
+            <button
               key={r}
               type="button"
               onClick={() => setRole(r)}
@@ -533,30 +521,6 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('password')}</label>
             <input type="password" name="password" value={formData.password} onChange={handleChange} required placeholder="••••••••" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
           </div>
-          <div className="space-y-2 md:col-span-2">
-            <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('phone')}</label>
-            <input type="tel" name="phone" value={formData.phone} onChange={handleChange} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-          </div>
-          
-          {role !== 'citizen' && (
-            <div className="space-y-2 md:col-span-2">
-              <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>CNIE (Obligatoire)</label>
-              <input type="text" name="cnie" value={formData.cnie} onChange={handleChange} required placeholder="Ex: AB123456" className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-            </div>
-          )}
-          
-          {(role === 'official' || role === 'admin_central') && (
-            <>
-              <div className="space-y-2">
-                <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('grade')}</label>
-                <input name="grade" value={formData.grade} onChange={handleChange} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-              </div>
-              <div className="space-y-2">
-                <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('matricule')}</label>
-                <input name="matricule" value={formData.matricule} onChange={handleChange} required className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all" />
-              </div>
-            </>
-          )}
 
           <div className="space-y-2 md:col-span-2">
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>{t('city')}</label>
@@ -579,10 +543,10 @@ const RegisterPage = ({ onRegister }: { onRegister: (user: UserProfile) => void 
   );
 };
 
-const Dashboard = ({ user }: { user: UserProfile }) => {
+const Dashboard = ({ user, onUpdateUser }: { user: UserProfile, onUpdateUser: (user: UserProfile) => void }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
-  const [activeTab, setActiveTab] = useState<'overview' | 'scan' | 'generate' | 'legal' | 'validate'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'scan' | 'generate' | 'legal' | 'validate' | 'profile'>('overview');
 
   // RBAC Tab Logic
   const getTabs = () => {
@@ -591,7 +555,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
       { id: 'legal', label: t('legal_vulgarization'), icon: Search }
     ];
 
-    if (user.role === 'official' || user.role === 'admin_central' || user.role === 'super_admin') {
+    if (user.role === 'fonctionnaire' || user.role === 'admin_central' || user.role === 'super_admin') {
       baseTabs.splice(1, 0, { id: 'scan', label: t('scan_doc'), icon: Camera });
       baseTabs.splice(2, 0, { id: 'generate', label: t('generate_doc'), icon: FileOutput });
     }
@@ -619,7 +583,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
         { title: "Statistiques Locales", icon: LayoutDashboard, color: "bg-[var(--color-majorelle)]", desc: `Activité de la commune de ${user.city}.`, value: "Active" }
       ];
     }
-    if (user.role === 'official') {
+    if (user.role === 'fonctionnaire') {
       return [
         { title: t('procedures'), icon: FileText, color: "bg-[var(--color-majorelle)]", desc: "Suivi des dossiers et formalités.", value: "14 Dossiers" },
         { title: t('urbanism'), icon: Building2, color: "bg-emerald-600", desc: "Autorisations et plans d'aménagement.", value: "3 En cours" },
@@ -647,8 +611,8 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
                 onClick={() => setActiveTab(tab.id as any)}
                 className={cn(
                   "w-full px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center gap-3",
-                  activeTab === tab.id 
-                    ? "bg-[var(--color-majorelle)] text-white shadow-lg shadow-[var(--color-majorelle)]/20" 
+                  activeTab === tab.id
+                    ? "bg-[var(--color-majorelle)] text-white shadow-lg shadow-[var(--color-majorelle)]/20"
                     : "text-slate-600 hover:text-[var(--color-majorelle)] hover:bg-[var(--color-majorelle)]/5",
                   isRtl ? "flex-row-reverse" : "flex-row"
                 )}
@@ -659,16 +623,19 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
             ))}
           </div>
         </div>
-        
+
         {/* User Mini Profile in Sidebar */}
-        <div className="p-6 border-t border-slate-200 bg-white/50 backdrop-blur-md">
+        <div
+          onClick={() => setActiveTab('profile')}
+          className="p-6 border-t border-slate-200 bg-white/50 backdrop-blur-md cursor-pointer hover:bg-white/80 transition-all group"
+        >
           <div className={cn("flex items-center gap-3", isRtl ? "flex-row-reverse" : "flex-row")}>
-            <div className="w-10 h-10 rounded-full bg-[var(--color-majorelle)]/10 flex items-center justify-center border border-[var(--color-majorelle)]/20">
+            <div className="w-10 h-10 rounded-full bg-[var(--color-majorelle)]/10 flex items-center justify-center border border-[var(--color-majorelle)]/20 group-hover:scale-110 transition-transform">
               <User className="w-5 h-5 text-[var(--color-majorelle)]" />
             </div>
             <div className={cn("flex flex-col", isRtl ? "items-end" : "items-start")}>
-              <span className="text-slate-800 font-bold text-sm">{user.name}</span>
-              <span className="text-slate-500 text-xs">{user.id.padStart(8, '0')}</span>
+              <span className="text-slate-800 font-bold text-sm group-hover:text-[var(--color-majorelle)] transition-colors">{user.full_name}</span>
+              <span className="text-slate-500 text-xs font-medium">{t(user.role)} • {user.city}</span>
             </div>
           </div>
         </div>
@@ -683,13 +650,13 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
           <header className={cn("flex flex-col md:flex-row justify-between items-start md:items-center gap-6", isRtl ? "flex-row-reverse" : "flex-row")}>
             <div className={cn("flex flex-col gap-2", isRtl ? "items-end" : "items-start")}>
               <h1 className="text-4xl font-black text-[var(--color-majorelle-dark)] font-tech">{t('dashboard')}</h1>
-              <p className="text-slate-600 font-medium">Bienvenue, {user.name}. Espace <span className="text-[var(--color-majorelle)] font-bold">{t(user.role)}</span> de {user.city}.</p>
+              <p className="text-slate-600 font-medium">Bienvenue, {user.full_name}. Espace <span className="text-[var(--color-majorelle)] font-bold">{t(user.role)}</span> de {user.city}.</p>
             </div>
           </header>
 
           <AnimatePresence mode="wait">
             {activeTab === 'overview' && (
-              <motion.div 
+              <motion.div
                 key="overview"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -698,7 +665,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
               >
                 {/* Dynamic Overview Cards based on Role */}
                 {getOverviewCards().map((card, i) => (
-                  <motion.div 
+                  <motion.div
                     key={i}
                     whileHover={{ y: -5 }}
                     className="bg-white border border-slate-200 rounded-3xl p-6 hover:border-[var(--color-majorelle)]/50 transition-all cursor-pointer group shadow-sm hover:shadow-md"
@@ -711,7 +678,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
                     </div>
                     <h3 className={cn("text-slate-800 font-bold text-lg", isRtl ? "text-right" : "text-left")}>{card.title}</h3>
                     <p className={cn("text-slate-500 text-sm mt-1", isRtl ? "text-right" : "text-left")}>{card.desc}</p>
-                    
+
                     {/* Micro-Chart Placeholder */}
                     <div className="mt-4 h-8 flex items-end gap-1 opacity-50 group-hover:opacity-100 transition-opacity">
                       {[40, 70, 45, 90, 65, 85, 60].map((h, idx) => (
@@ -734,13 +701,13 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
                   </div>
                   <MoroccoMap activeCity={user.city} />
                 </div>
-                
+
                 {/* Pending Validations Preview (if Admin) */}
                 {(user.role === 'super_admin' || user.role === 'admin_central') && (
                   <div className="md:col-span-3 bg-white border border-slate-200 rounded-3xl p-6 shadow-sm">
                     <div className={cn("flex justify-between items-center mb-6", isRtl ? "flex-row-reverse" : "flex-row")}>
                       <h3 className="text-xl font-bold text-[var(--color-majorelle-dark)] font-tech">Validations en Attente</h3>
-                      <button 
+                      <button
                         onClick={() => setActiveTab('validate')}
                         className="text-sm font-bold text-[var(--color-majorelle)] hover:underline"
                       >
@@ -754,7 +721,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
             )}
 
             {activeTab === 'scan' && (
-              <motion.div 
+              <motion.div
                 key="scan"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -766,7 +733,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
             )}
 
             {activeTab === 'generate' && (
-              <motion.div 
+              <motion.div
                 key="generate"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -777,7 +744,7 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
             )}
 
             {activeTab === 'legal' && (
-              <motion.div 
+              <motion.div
                 key="legal"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -788,13 +755,26 @@ const Dashboard = ({ user }: { user: UserProfile }) => {
             )}
 
             {activeTab === 'validate' && (
-              <motion.div 
+              <motion.div
                 key="validate"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
                 <UserValidation currentUser={user} />
+              </motion.div>
+            )}
+
+            {activeTab === 'profile' && (
+              <motion.div
+                key="profile"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <ProfilePage user={user} onUpdate={(updatedUser) => {
+                  onUpdateUser(updatedUser);
+                }} />
               </motion.div>
             )}
           </AnimatePresence>
@@ -852,9 +832,9 @@ export default function App() {
         .select('*')
         .eq('id', userId)
         .single();
-      
+
       if (error) throw error;
-      
+
       if (data && data.status === 'active') {
         setUser(data as UserProfile);
       } else {
@@ -893,21 +873,21 @@ export default function App() {
     <Router>
       <div className={cn("min-h-screen font-sans selection:bg-[var(--color-majorelle)]/20", isRtl ? "font-arabic" : "")}>
         <Navbar user={user} onLogout={handleLogout} />
-        
+
         <AnimatePresence mode="wait">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route 
-              path="/login" 
-              element={user ? <Navigate to="/dashboard" /> : <LoginPage onLogin={handleLogin} />} 
+            <Route
+              path="/login"
+              element={user ? <Navigate to="/dashboard" /> : <LoginPage onLogin={handleLogin} />}
             />
-            <Route 
-              path="/register" 
-              element={user ? <Navigate to="/dashboard" /> : <RegisterPage onRegister={handleLogin} />} 
+            <Route
+              path="/register"
+              element={user ? <Navigate to="/dashboard" /> : <RegisterPage onRegister={handleLogin} />}
             />
-            <Route 
-              path="/dashboard" 
-              element={user ? <Dashboard user={user} /> : <Navigate to="/login" />} 
+            <Route
+              path="/dashboard"
+              element={user ? <Dashboard user={user} onUpdateUser={setUser} /> : <Navigate to="/login" />}
             />
           </Routes>
         </AnimatePresence>
@@ -918,7 +898,7 @@ export default function App() {
             <Link to="/" className="flex items-center gap-3 hover:opacity-80 transition-opacity">
               <div className="w-8 h-8 bg-[var(--color-moroccan-red)] rounded-lg flex items-center justify-center shadow-lg shadow-[var(--color-moroccan-red)]/20 border border-white/50 relative overflow-hidden">
                 <svg viewBox="0 0 100 100" className="w-6 h-6 text-[var(--color-moroccan-green)] absolute opacity-20">
-                  <polygon points="50,5 61,39 97,39 68,60 79,95 50,74 21,95 32,60 3,39 39,39" fill="none" stroke="currentColor" strokeWidth="4"/>
+                  <polygon points="50,5 61,39 97,39 68,60 79,95 50,74 21,95 32,60 3,39 39,39" fill="none" stroke="currentColor" strokeWidth="4" />
                 </svg>
                 <Shield className="text-[var(--color-saffron)] w-4 h-4 relative z-10" />
               </div>
