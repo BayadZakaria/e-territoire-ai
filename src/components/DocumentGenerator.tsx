@@ -4,7 +4,7 @@ import { FileOutput, Download, CheckCircle2, Shield, QrCode, FileText } from 'lu
 import { cn } from '../lib/utils';
 import { generateDocumentDraft } from '../services/aiService';
 import ReactMarkdown from 'react-markdown';
-import html2pdf from 'html2pdf.js';
+import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
 import { QRCodeCanvas } from 'qrcode.react';
 import { UserProfile } from '../types';
 
@@ -117,18 +117,18 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         <div className="relative">
           {preview ? (
             <div className="bg-white rounded-xl shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
-              <div id="pv-content" className="p-8 flex flex-col gap-6 bg-white relative" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}>
+              <div id="pv-content" className="p-8 flex flex-col gap-6 relative" style={{ backgroundColor: '#ffffff', color: '#0f172a', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}>
                 {/* Official Header */}
-                <div className="flex justify-between items-start border-b border-slate-200 pb-4">
-                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center">
+                <div className="flex justify-between items-start pb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center" style={{ color: '#0f172a' }}>
                     <p>Royaume du Maroc</p>
                     <p>Ministère de l'Intérieur</p>
                     <p>Préfecture de Casablanca</p>
                   </div>
-                  <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200">
-                    <Shield className="text-[var(--color-saffron)] w-6 h-6" />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <Shield className="w-6 h-6" style={{ color: '#F4C430' }} />
                   </div>
-                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center" dir="rtl">
+                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center" dir="rtl" style={{ color: '#0f172a' }}>
                     <p>المملكة المغربية</p>
                     <p>وزارة الداخلية</p>
                     <p>عمالة الدار البيضاء</p>
@@ -136,38 +136,39 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
                 </div>
 
                 <div className="text-center space-y-2">
-                  <h4 className="text-lg font-black uppercase tracking-widest text-[var(--color-majorelle-dark)]">{docType.toUpperCase()}</h4>
-                  <div className="h-0.5 w-16 bg-[var(--color-saffron)] mx-auto" />
+                  <h4 className="text-lg font-black uppercase tracking-widest" style={{ color: '#1e3a8a' }}>{docType.toUpperCase()}</h4>
+                  <div className="h-0.5 w-16 mx-auto" style={{ backgroundColor: '#F4C430' }} />
                 </div>
 
-                <div className="space-y-4 text-xs leading-relaxed text-slate-700 markdown-body">
+                <div className="space-y-4 text-xs leading-relaxed markdown-body" style={{ color: '#334155' }}>
                   <ReactMarkdown>{generatedContent}</ReactMarkdown>
                 </div>
 
-                <div className="mt-12 pt-8 border-t border-slate-200 flex justify-between items-end break-inside-avoid">
+                <div className="mt-12 pt-8 flex justify-between items-end break-inside-avoid" style={{ borderTop: '1px solid #e2e8f0' }}>
                   <div className="flex flex-col gap-2">
-                    <div className="p-1 bg-white border border-slate-200 rounded">
+                    <div className="p-1 rounded" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
                       <QRCodeCanvas value={`https://e-territoire.ma/verify/${Date.now()}`} size={64} />
                     </div>
-                    <span className="text-[6px] text-slate-400">Réf: {Date.now().toString().slice(-6)}</span>
+                    <span className="text-[6px]" style={{ color: '#94a3b8' }}>Réf: {Date.now().toString().slice(-6)}</span>
                   </div>
 
                   <div className="text-center relative min-w-[200px]">
-                    <p className="text-[10px] font-bold mb-1 text-slate-600">Signé électroniquement par :</p>
-                    <p className="text-sm font-bold text-[var(--color-majorelle-dark)]">{user?.full_name || 'Fonctionnaire Autorisé'}</p>
-                    <p className="text-[10px] text-slate-500 mb-6">{user?.grade || 'Administrateur'}</p>
+                    <p className="text-[10px] font-bold mb-1" style={{ color: '#475569' }}>Fait le {new Date().toLocaleDateString('fr-FR')}</p>
+                    <p className="text-[10px] font-bold mb-1" style={{ color: '#475569' }}>Signé électroniquement par :</p>
+                    <p className="text-sm font-bold" style={{ color: '#1e3a8a' }}>{user?.full_name || 'Fonctionnaire Autorisé'}</p>
+                    <p className="text-[10px] mb-6" style={{ color: '#64748b' }}>{user?.grade || 'Administrateur'}</p>
 
                     {/* Signature Cursive */}
                     <div
-                      className="text-3xl text-blue-800/80 absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4"
-                      style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: "rotate(-5deg) translateX(-50%)" }}
+                      className="text-3xl absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4"
+                      style={{ color: '#1e40af', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: "rotate(-5deg) translateX(-50%)" }}
                     >
                       {user?.full_name || 'Signature'}
                     </div>
 
                     {/* CSS Seal */}
-                    <div className="absolute top-0 right-[-20px] w-16 h-16 border-4 border-double border-red-600/40 rounded-full flex items-center justify-center rotate-12 opacity-70 pointer-events-none">
-                      <div className="text-[5px] text-red-600/70 font-bold uppercase text-center leading-tight">
+                    <div className="absolute top-0 right-[-20px] w-16 h-16 border-4 border-double rounded-full flex items-center justify-center rotate-12 pointer-events-none" style={{ borderColor: '#dc2626', opacity: 0.7 }}>
+                      <div className="text-[5px] font-bold uppercase text-center leading-tight" style={{ color: '#dc2626' }}>
                         Royaume du Maroc<br />
                         <span className="text-[8px]">★</span><br />
                         Approuvé
@@ -176,8 +177,8 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
                   </div>
                 </div>
 
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-30deg] opacity-5 pointer-events-none">
-                  <h1 className="text-8xl font-black text-[var(--color-majorelle)]">DRAFT</h1>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-30deg] pointer-events-none" style={{ opacity: 0.05 }}>
+                  <h1 className="text-8xl font-black" style={{ color: '#6050DC' }}>DRAFT</h1>
                 </div>
               </div>
 
