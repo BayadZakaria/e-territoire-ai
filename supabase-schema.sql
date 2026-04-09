@@ -112,16 +112,16 @@ BEGIN
   VALUES (
     new.id,
     new.email,
-    new.raw_user_meta_data->>'name',
-    new.raw_user_meta_data->>'surname',
-    new.raw_user_meta_data->>'phone',
+    COALESCE(new.raw_user_meta_data->>'name', split_part(new.raw_user_meta_data->>'full_name', ' ', 1), 'Utilisateur'),
+    COALESCE(new.raw_user_meta_data->>'surname', split_part(new.raw_user_meta_data->>'full_name', ' ', 2), ''),
+    COALESCE(new.raw_user_meta_data->>'phone', ''),
     new.raw_user_meta_data->>'cnie',
     new.raw_user_meta_data->>'grade',
     new.raw_user_meta_data->>'matricule',
-    new.raw_user_meta_data->>'city',
+    COALESCE(new.raw_user_meta_data->>'city', 'Non renseignée'),
     COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'citizen'::public.user_role),
-    CASE WHEN (new.raw_user_meta_data->>'role') = 'citizen' THEN 'active'::public.user_status ELSE 'pending'::public.user_status END,
-    CASE WHEN (new.raw_user_meta_data->>'role') = 'citizen' THEN TRUE ELSE FALSE END
+    CASE WHEN COALESCE(new.raw_user_meta_data->>'role', 'citizen') = 'citizen' THEN 'active'::public.user_status ELSE 'pending'::public.user_status END,
+    CASE WHEN COALESCE(new.raw_user_meta_data->>'role', 'citizen') = 'citizen' THEN TRUE ELSE FALSE END
   );
   RETURN new;
 END;
