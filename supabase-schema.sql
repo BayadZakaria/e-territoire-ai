@@ -75,11 +75,6 @@ USING (
   AND profiles.role = 'official'
 );
 
--- Policy: Users can delete their own profile
-CREATE POLICY "Users can delete own profile" 
-ON public.profiles FOR DELETE 
-USING (auth.uid() = id);
-
 -- 6. Create RLS Policies for scanned_documents
 
 -- Policy: Users can read their own documents
@@ -107,21 +102,53 @@ USING (
 -- 7. Create a trigger to automatically create a profile when a user signs up
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS trigger AS $$
+DECLARE
+  is_google boolean;
+  assigned_role public.user_role;
+  assigned_status public.user_status;
+  assigned_approved boolean;
+  assigned_city text;
+  assigned_cnie text;
+  assigned_grade text;
+  assigned_matricule text;
 BEGIN
+  -- Check if the user signed up via Google OAuth
+  is_google := (new.raw_app_meta_data->>'provider' = 'google');
+
+  IF is_google THEN
+    -- Force citizen role and default values for Google users
+    assigned_role := 'citizen'::public.user_role;
+    assigned_status := 'active'::public.user_status;
+    assigned_approved := TRUE;
+    assigned_city := 'Non spécifiée';
+    assigned_cnie := NULL;
+    assigned_grade := NULL;
+    assigned_matricule := NULL;
+  ELSE
+    -- Use provided metadata for email/password signups
+    assigned_role := COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'citizen'::public.user_role);
+    assigned_status := CASE WHEN assigned_role = 'citizen' THEN 'active'::public.user_status ELSE 'pending'::public.user_status END;
+    assigned_approved := CASE WHEN assigned_role = 'citizen' THEN TRUE ELSE FALSE END;
+    assigned_city := COALESCE(new.raw_user_meta_data->>'city', 'Non renseignée');
+    assigned_cnie := new.raw_user_meta_data->>'cnie';
+    assigned_grade := new.raw_user_meta_data->>'grade';
+    assigned_matricule := new.raw_user_meta_data->>'matricule';
+  END IF;
+
   INSERT INTO public.profiles (id, email, name, surname, phone, cnie, grade, matricule, city, role, status, is_approved)
   VALUES (
     new.id,
     new.email,
-    COALESCE(new.raw_user_meta_data->>'name', split_part(new.raw_user_meta_data->>'full_name', ' ', 1), 'Utilisateur'),
-    COALESCE(new.raw_user_meta_data->>'surname', split_part(new.raw_user_meta_data->>'full_name', ' ', 2), ''),
+    COALESCE(new.raw_user_meta_data->>'full_name', new.raw_user_meta_data->>'name', split_part(new.email, '@', 1)),
+    COALESCE(new.raw_user_meta_data->>'surname', ''),
     COALESCE(new.raw_user_meta_data->>'phone', ''),
-    new.raw_user_meta_data->>'cnie',
-    new.raw_user_meta_data->>'grade',
-    new.raw_user_meta_data->>'matricule',
-    COALESCE(new.raw_user_meta_data->>'city', 'Non renseignée'),
-    COALESCE((new.raw_user_meta_data->>'role')::public.user_role, 'citizen'::public.user_role),
-    CASE WHEN COALESCE(new.raw_user_meta_data->>'role', 'citizen') = 'citizen' THEN 'active'::public.user_status ELSE 'pending'::public.user_status END,
-    CASE WHEN COALESCE(new.raw_user_meta_data->>'role', 'citizen') = 'citizen' THEN TRUE ELSE FALSE END
+    assigned_cnie,
+    assigned_grade,
+    assigned_matricule,
+    assigned_city,
+    assigned_role,
+    assigned_status,
+    assigned_approved
   );
   RETURN new;
 END;
@@ -134,56 +161,30 @@ CREATE TRIGGER on_auth_user_created
   AFTER INSERT ON auth.users
   FOR EACH ROW EXECUTE PROCEDURE public.handle_new_user();
 
--- =================================================================================
--- RAG System (Retrieval-Augmented Generation)
--- =================================================================================
+-- 8. Create a trigger to prevent privilege escalation on profile updates
+CREATE OR REPLACE FUNCTION public.prevent_privilege_escalation()
+RETURNS trigger AS $$
+DECLARE
+  current_user_role public.user_role;
+BEGIN
+  -- Get the role of the user performing the update
+  SELECT role INTO current_user_role FROM public.profiles WHERE id = auth.uid();
+  
+  -- If the user is not an admin, they cannot change sensitive fields
+  IF current_user_role NOT IN ('admin_central', 'super_admin') THEN
+    NEW.role := OLD.role;
+    NEW.status := OLD.status;
+    NEW.is_approved := OLD.is_approved;
+    NEW.grade := OLD.grade;
+    NEW.matricule := OLD.matricule;
+  END IF;
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
--- 8. Enable the pgvector extension
-CREATE EXTENSION IF NOT EXISTS vector;
+DROP TRIGGER IF EXISTS ensure_no_privilege_escalation ON public.profiles;
 
--- 9. Create the document_chunks table
-CREATE TABLE public.document_chunks (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  document_name TEXT NOT NULL,
-  content TEXT NOT NULL,
-  embedding vector(768),
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::text, NOW()) NOT NULL
-);
-
--- 10. Enable RLS on document_chunks
-ALTER TABLE public.document_chunks ENABLE ROW LEVEL SECURITY;
-
--- Policy: Anyone can read document chunks (or restrict as needed)
-CREATE POLICY "Users can view document chunks" 
-ON public.document_chunks FOR SELECT 
-USING (true);
-
--- Policy: Users can insert document chunks
-CREATE POLICY "Users can insert document chunks" 
-ON public.document_chunks FOR INSERT 
-WITH CHECK (true);
-
--- 11. Create the match_documents RPC function for similarity search
-CREATE OR REPLACE FUNCTION match_documents (
-  query_embedding vector(768),
-  match_threshold float,
-  match_count int
-)
-RETURNS TABLE (
-  id uuid,
-  document_name text,
-  content text,
-  similarity float
-)
-LANGUAGE sql STABLE
-AS $$
-  SELECT
-    document_chunks.id,
-    document_chunks.document_name,
-    document_chunks.content,
-    1 - (document_chunks.embedding <=> query_embedding) AS similarity
-  FROM document_chunks
-  WHERE 1 - (document_chunks.embedding <=> query_embedding) > match_threshold
-  ORDER BY document_chunks.embedding <=> query_embedding
-  LIMIT match_count;
-$$;
+CREATE TRIGGER ensure_no_privilege_escalation
+  BEFORE UPDATE ON public.profiles
+  FOR EACH ROW EXECUTE PROCEDURE public.prevent_privilege_escalation();
