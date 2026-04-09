@@ -5,7 +5,7 @@ import { cn } from '../lib/utils';
 import { generateDocumentDraft } from '../services/aiService';
 import ReactMarkdown from 'react-markdown';
 import html2pdf from 'html2pdf.js';
-import { QRCodeSVG } from 'qrcode.react';
+import { QRCodeCanvas } from 'qrcode.react';
 import { UserProfile } from '../types';
 
 export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
@@ -41,11 +41,13 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
       margin: [15, 15, 15, 15] as [number, number, number, number],
       filename: `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
       image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: true },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     };
 
-    html2pdf().set(opt).from(element).save();
+    setTimeout(() => {
+      html2pdf().set(opt).from(element).save();
+    }, 500);
   };
 
   return (
@@ -115,7 +117,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         <div className="relative">
           {preview ? (
             <div className="bg-white rounded-xl shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
-              <div id="pv-content" className="p-8 flex flex-col gap-6 bg-white relative">
+              <div id="pv-content" className="p-8 flex flex-col gap-6 bg-white relative" style={{ WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}>
                 {/* Official Header */}
                 <div className="flex justify-between items-start border-b border-slate-200 pb-4">
                   <div className="text-[8px] font-bold uppercase tracking-tighter text-center">
@@ -145,7 +147,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
                 <div className="mt-12 pt-8 border-t border-slate-200 flex justify-between items-end break-inside-avoid">
                   <div className="flex flex-col gap-2">
                     <div className="p-1 bg-white border border-slate-200 rounded">
-                      <QRCodeSVG value={`https://e-territoire.ma/verify/${Date.now()}`} size={64} />
+                      <QRCodeCanvas value={`https://e-territoire.ma/verify/${Date.now()}`} size={64} />
                     </div>
                     <span className="text-[6px] text-slate-400">Réf: {Date.now().toString().slice(-6)}</span>
                   </div>
