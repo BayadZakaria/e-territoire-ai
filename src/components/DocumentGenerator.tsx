@@ -4,6 +4,7 @@ import { FileOutput, Download, CheckCircle2, Shield, QrCode, FileText } from 'lu
 import { cn } from '../lib/utils';
 import { generateDocumentDraft } from '../services/aiService';
 import ReactMarkdown from 'react-markdown';
+import { jsPDF } from 'jspdf';
 
 export const DocumentGenerator = () => {
   const { t, i18n } = useTranslation();
@@ -28,6 +29,34 @@ export const DocumentGenerator = () => {
     } finally {
       setGenerating(false);
     }
+  };
+
+  const downloadPDF = () => {
+    if (!generatedContent) return;
+
+    const doc = new jsPDF();
+
+    // Titre
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(16);
+    doc.text("e-Territoire AI - Procès-Verbal", 105, 20, { align: "center" });
+
+    // Contenu
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(11);
+
+    // Nettoyage basique du markdown pour le PDF texte (jsPDF text() ne gère pas le markdown)
+    const cleanText = generatedContent
+      .replace(/\*\*/g, '') // Supprime le gras
+      .replace(/#/g, '')    // Supprime les titres
+      .replace(/_/g, '');   // Supprime l'italique
+
+    // Découpage du texte pour qu'il tienne dans la page (marges de 20mm)
+    const splitText = doc.splitTextToSize(cleanText, 170);
+
+    doc.text(splitText, 20, 40);
+
+    doc.save("proces-verbal.pdf");
   };
 
   return (
@@ -143,7 +172,11 @@ export const DocumentGenerator = () => {
               </div>
 
               <div className="absolute bottom-4 right-4 z-10">
-                <button className="p-3 bg-[var(--color-majorelle)] text-white rounded-full shadow-xl hover:scale-110 transition-transform">
+                <button
+                  onClick={downloadPDF}
+                  className="p-3 bg-[var(--color-majorelle)] text-white rounded-full shadow-xl hover:scale-110 transition-transform"
+                  title="Télécharger le PV (PDF)"
+                >
                   <Download className="w-5 h-5" />
                 </button>
               </div>
