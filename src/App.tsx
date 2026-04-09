@@ -838,7 +838,7 @@ const Dashboard = ({ user, onUpdateUser }: { user: UserProfile, onUpdateUser: (u
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -20 }}
               >
-                <DocumentGenerator />
+                <DocumentGenerator user={user} />
               </motion.div>
             )}
 

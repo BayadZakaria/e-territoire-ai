@@ -4,9 +4,11 @@ import { FileOutput, Download, CheckCircle2, Shield, QrCode, FileText } from 'lu
 import { cn } from '../lib/utils';
 import { generateDocumentDraft } from '../services/aiService';
 import ReactMarkdown from 'react-markdown';
-import { jsPDF } from 'jspdf';
+import html2pdf from 'html2pdf.js';
+import { QRCodeSVG } from 'qrcode.react';
+import { UserProfile } from '../types';
 
-export const DocumentGenerator = () => {
+export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
   const { t, i18n } = useTranslation();
   const isRtl = i18n.language === 'ar';
   const [generating, setGenerating] = useState(false);
@@ -32,31 +34,18 @@ export const DocumentGenerator = () => {
   };
 
   const downloadPDF = () => {
-    if (!generatedContent) return;
+    const element = document.getElementById('pv-content');
+    if (!element) return;
 
-    const doc = new jsPDF();
+    const opt = {
+      margin: [15, 15, 15, 15] as [number, number, number, number],
+      filename: `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+    };
 
-    // Titre
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text("e-Territoire AI - Procès-Verbal", 105, 20, { align: "center" });
-
-    // Contenu
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(11);
-
-    // Nettoyage basique du markdown pour le PDF texte (jsPDF text() ne gère pas le markdown)
-    const cleanText = generatedContent
-      .replace(/\*\*/g, '') // Supprime le gras
-      .replace(/#/g, '')    // Supprime les titres
-      .replace(/_/g, '');   // Supprime l'italique
-
-    // Découpage du texte pour qu'il tienne dans la page (marges de 20mm)
-    const splitText = doc.splitTextToSize(cleanText, 170);
-
-    doc.text(splitText, 20, 40);
-
-    doc.save("proces-verbal.pdf");
+    html2pdf().set(opt).from(element).save();
   };
 
   return (
@@ -125,50 +114,69 @@ export const DocumentGenerator = () => {
 
         <div className="relative">
           {preview ? (
-            <div className="bg-white rounded-xl p-8 shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col gap-6 relative overflow-hidden">
-              {/* Official Header */}
-              <div className="flex justify-between items-start border-b border-slate-200 pb-4">
-                <div className="text-[8px] font-bold uppercase tracking-tighter text-center">
-                  <p>Royaume du Maroc</p>
-                  <p>Ministère de l'Intérieur</p>
-                  <p>Préfecture de Casablanca</p>
-                </div>
-                <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200">
-                  <Shield className="text-[var(--color-saffron)] w-6 h-6" />
-                </div>
-                <div className="text-[8px] font-bold uppercase tracking-tighter text-center" dir="rtl">
-                  <p>المملكة المغربية</p>
-                  <p>وزارة الداخلية</p>
-                  <p>عمالة الدار البيضاء</p>
-                </div>
-              </div>
-
-              <div className="text-center space-y-2">
-                <h4 className="text-lg font-black uppercase tracking-widest text-[var(--color-majorelle-dark)]">DRAFT OFFICIEL</h4>
-                <div className="h-0.5 w-16 bg-[var(--color-saffron)] mx-auto" />
-              </div>
-
-              <div className="space-y-4 text-xs leading-relaxed text-slate-700 markdown-body">
-                <ReactMarkdown>{generatedContent}</ReactMarkdown>
-              </div>
-
-              <div className="mt-auto flex justify-between items-end pt-8">
-                <div className="flex flex-col gap-2">
-                  <div className="w-16 h-16 bg-slate-50 rounded border border-slate-200 flex items-center justify-center">
-                    <QrCode className="text-slate-400 w-10 h-10" />
+            <div className="bg-white rounded-xl shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
+              <div id="pv-content" className="p-8 flex flex-col gap-6 bg-white relative">
+                {/* Official Header */}
+                <div className="flex justify-between items-start border-b border-slate-200 pb-4">
+                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center">
+                    <p>Royaume du Maroc</p>
+                    <p>Ministère de l'Intérieur</p>
+                    <p>Préfecture de Casablanca</p>
                   </div>
-                  <span className="text-[6px] text-slate-400">Vérification: e-Territoire.ma/verify/12345</span>
-                </div>
-                <div className="text-right space-y-1">
-                  <p className="text-[8px] font-bold text-slate-600">Fait le {new Date().toLocaleDateString('fr-FR')}</p>
-                  <div className="w-24 h-12 border border-dashed border-slate-300 rounded flex items-center justify-center bg-slate-50">
-                    <span className="text-[8px] text-slate-400 italic">Signature Digitale</span>
+                  <div className="w-12 h-12 bg-slate-50 rounded-full flex items-center justify-center border border-slate-200">
+                    <Shield className="text-[var(--color-saffron)] w-6 h-6" />
+                  </div>
+                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center" dir="rtl">
+                    <p>المملكة المغربية</p>
+                    <p>وزارة الداخلية</p>
+                    <p>عمالة الدار البيضاء</p>
                   </div>
                 </div>
-              </div>
 
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-30deg] opacity-5 pointer-events-none">
-                <h1 className="text-8xl font-black text-[var(--color-majorelle)]">DRAFT</h1>
+                <div className="text-center space-y-2">
+                  <h4 className="text-lg font-black uppercase tracking-widest text-[var(--color-majorelle-dark)]">{docType.toUpperCase()}</h4>
+                  <div className="h-0.5 w-16 bg-[var(--color-saffron)] mx-auto" />
+                </div>
+
+                <div className="space-y-4 text-xs leading-relaxed text-slate-700 markdown-body">
+                  <ReactMarkdown>{generatedContent}</ReactMarkdown>
+                </div>
+
+                <div className="mt-12 pt-8 border-t border-slate-200 flex justify-between items-end break-inside-avoid">
+                  <div className="flex flex-col gap-2">
+                    <div className="p-1 bg-white border border-slate-200 rounded">
+                      <QRCodeSVG value={`https://e-territoire.ma/verify/${Date.now()}`} size={64} />
+                    </div>
+                    <span className="text-[6px] text-slate-400">Réf: {Date.now().toString().slice(-6)}</span>
+                  </div>
+
+                  <div className="text-center relative min-w-[200px]">
+                    <p className="text-[10px] font-bold mb-1 text-slate-600">Signé électroniquement par :</p>
+                    <p className="text-sm font-bold text-[var(--color-majorelle-dark)]">{user?.full_name || 'Fonctionnaire Autorisé'}</p>
+                    <p className="text-[10px] text-slate-500 mb-6">{user?.grade || 'Administrateur'}</p>
+
+                    {/* Signature Cursive */}
+                    <div
+                      className="text-3xl text-blue-800/80 absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4"
+                      style={{ fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: "rotate(-5deg) translateX(-50%)" }}
+                    >
+                      {user?.full_name || 'Signature'}
+                    </div>
+
+                    {/* CSS Seal */}
+                    <div className="absolute top-0 right-[-20px] w-16 h-16 border-4 border-double border-red-600/40 rounded-full flex items-center justify-center rotate-12 opacity-70 pointer-events-none">
+                      <div className="text-[5px] text-red-600/70 font-bold uppercase text-center leading-tight">
+                        Royaume du Maroc<br />
+                        <span className="text-[8px]">★</span><br />
+                        Approuvé
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-30deg] opacity-5 pointer-events-none">
+                  <h1 className="text-8xl font-black text-[var(--color-majorelle)]">DRAFT</h1>
+                </div>
               </div>
 
               <div className="absolute bottom-4 right-4 z-10">
