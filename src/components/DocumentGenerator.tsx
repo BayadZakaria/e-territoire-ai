@@ -27,7 +27,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         setPreview(true);
       }
     } catch (error) {
-      console.error("API Error:", error);
+      console.log(error);
     } finally {
       setGenerating(false);
     }
@@ -38,20 +38,20 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
     if (!element) return;
 
     const opt = {
-      margin: [15, 15, 15, 15] as [number, number, number, number],
-      filename: `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: {
-        scale: 2,
-        useCORS: true,
-        letterRendering: true,
+      margin:       [15, 15, 15, 15] as [number, number, number, number],
+      filename:     `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
+      image:        { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas:  { 
+        scale: 2, 
+        useCORS: true, 
+        letterRendering: true, 
         logging: true,
         onclone: (clonedDoc: Document) => {
           // FIX ANTI-CRASH OKLCH : Supprimer les styles globaux (Tailwind) du clone
           // html2canvas plante s'il lit des variables CSS contenant oklch()
           const styles = clonedDoc.querySelectorAll('head style, head link[rel="stylesheet"]');
           styles.forEach(s => s.remove());
-
+          
           // Forcer les bordures en HEX sur tous les éléments pour éviter l'héritage oklch
           const allElements = clonedDoc.getElementById('pv-content')?.getElementsByTagName('*');
           if (allElements) {
@@ -62,7 +62,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
           }
         }
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     };
 
     setTimeout(() => {
@@ -93,7 +93,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Type de Document
             </label>
-            <select
+            <select 
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all"
@@ -111,7 +111,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Informations Complémentaires
             </label>
-            <textarea
+            <textarea 
               rows={4}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
@@ -120,7 +120,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
             />
           </div>
 
-          <button
+          <button 
             onClick={handleGenerate}
             disabled={generating || !details.trim()}
             className="w-full py-4 bg-[var(--color-majorelle)] text-white rounded-xl font-bold hover:bg-[var(--color-majorelle-dark)] transition-all shadow-xl shadow-[var(--color-majorelle)]/20 disabled:opacity-50 flex items-center justify-center gap-3"
@@ -204,12 +204,12 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
                         <QRCodeCanvas value="https://e-territoire-ai.vercel.app/" size={80} />
                       </div>
                     </div>
-
+                    
                     <div style={{ textAlign: 'center', minWidth: '200px', position: 'relative' }}>
                       <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 40px 0' }}>L'Autorité Compétente</p>
-
+                      
                       {/* Signature Cursive */}
-                      <div
+                      <div 
                         style={{ fontSize: '24px', color: '#000000', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: 'rotate(-5deg) translateX(-50%)', position: 'absolute', bottom: '0', left: '50%', whiteSpace: 'nowrap' }}
                       >
                         {user?.full_name || 'Signature'}
@@ -220,7 +220,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
               </div>
 
               <div className="absolute bottom-4 right-4 z-10">
-                <button
+                <button 
                   onClick={downloadPDF}
                   className="p-3 bg-[var(--color-majorelle)] text-white rounded-full shadow-xl hover:scale-110 transition-transform"
                   title="Télécharger le PV (PDF)"
