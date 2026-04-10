@@ -102,7 +102,7 @@ export const askLegalQuestion = async (question: string, language: string, histo
 export const generateDocumentDraft = async (docType: string, details: string, language: string) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const genAI = new GoogleGenAI({ apiKey });
-  const model = "gemini-3-flash-preview";
+  const model = "gemini-1.5-flash";
 
   const systemInstruction = getSystemInstruction(language);
 
