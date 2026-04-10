@@ -22,12 +22,12 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
     setGenerating(true);
     try {
       const content = await generateDocumentDraft(docType, details, i18n.language);
-      setGeneratedContent(content || "Erreur lors de la génération.");
-      setPreview(true);
+      if (content) {
+        setGeneratedContent(content);
+        setPreview(true);
+      }
     } catch (error) {
-      console.error(error);
-      setGeneratedContent("Une erreur est survenue lors de la génération du document.");
-      setPreview(true);
+      console.error("API Error:", error);
     } finally {
       setGenerating(false);
     }
@@ -181,16 +181,6 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
                   <h4 style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', margin: '0' }}>
                     ATTESTATION ADMINISTRATIVE
                   </h4>
-                </div>
-
-                {/* Données Utilisateur */}
-                <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #000000', backgroundColor: '#f9f9f9' }}>
-                  <p style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
-                    Monsieur : <span style={{ fontWeight: 'normal' }}>{user?.full_name?.toUpperCase() || 'ZAKARIA BAYAD'}</span>
-                  </p>
-                  <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
-                    CIN : <span style={{ fontWeight: 'normal' }}>{user?.cnie || 'BK9876'}</span>
-                  </p>
                 </div>
 
                 {/* Content */}
