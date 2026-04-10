@@ -27,7 +27,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         setPreview(true);
       }
     } catch (error) {
-      console.log(error);
+      alert(`Erreur de génération : ${error}`);
     } finally {
       setGenerating(false);
     }
@@ -38,42 +38,17 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
     if (!element) return;
 
     const opt = {
-      margin:       [15, 15, 15, 15] as [number, number, number, number],
-      filename:     `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
-      image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { 
-        scale: 2, 
-        useCORS: true, 
-        letterRendering: true, 
-        logging: true,
-        onclone: (clonedDoc: Document) => {
-          // FIX ANTI-CRASH OKLCH : Supprimer les styles globaux (Tailwind) du clone
-          // html2canvas plante s'il lit des variables CSS contenant oklch()
-          const styles = clonedDoc.querySelectorAll('head style, head link[rel="stylesheet"]');
-          styles.forEach(s => s.remove());
-          
-          // Forcer les bordures en HEX sur tous les éléments pour éviter l'héritage oklch
-          const allElements = clonedDoc.getElementById('pv-content')?.getElementsByTagName('*');
-          if (allElements) {
-            for (let i = 0; i < allElements.length; i++) {
-              const el = allElements[i] as HTMLElement;
-              el.style.borderColor = '#000000';
-            }
-          }
-        }
-      },
-      jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+      margin: [15, 15, 15, 15] as [number, number, number, number],
+      filename: `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: { scale: 2, useCORS: true, letterRendering: true, logging: true },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     };
 
     setTimeout(() => {
       html2pdf().set(opt).from(element).save();
     }, 500);
   };
-
-  // Nettoyage du contenu généré par l'IA pour supprimer les dates/lieux fixes
-  const cleanContent = generatedContent
-    .replace(/Fait à .*, le .*/gi, '')
-    .replace(/24 Mai 2024/gi, '');
 
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-8 shadow-sm">
@@ -93,7 +68,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Type de Document
             </label>
-            <select 
+            <select
               value={docType}
               onChange={(e) => setDocType(e.target.value)}
               className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-3 text-slate-800 focus:border-[var(--color-majorelle)] outline-none transition-all"
@@ -111,7 +86,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
             <label className={cn("block text-xs font-bold text-slate-500 uppercase tracking-widest", isRtl ? "text-right" : "text-left")}>
               Informations Complémentaires
             </label>
-            <textarea 
+            <textarea
               rows={4}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
@@ -120,7 +95,7 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
             />
           </div>
 
-          <button 
+          <button
             onClick={handleGenerate}
             disabled={generating || !details.trim()}
             className="w-full py-4 bg-[var(--color-majorelle)] text-white rounded-xl font-bold hover:bg-[var(--color-majorelle-dark)] transition-all shadow-xl shadow-[var(--color-majorelle)]/20 disabled:opacity-50 flex items-center justify-center gap-3"
@@ -142,85 +117,101 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         <div className="relative">
           {preview ? (
             <div className="bg-white rounded-xl shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
-              <div id="pv-content" style={{ backgroundColor: '#ffffff', color: '#000000', padding: '40px', position: 'relative', minHeight: '1050px', boxSizing: 'border-box', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', fontFamily: 'Arial, sans-serif' } as React.CSSProperties}>
+              <div id="pv-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', padding: '20px', position: 'relative', minHeight: '1050px', boxSizing: 'border-box', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', fontFamily: 'Arial, sans-serif' } as React.CSSProperties}>
                 <style>{`
                   #pv-content .markdown-body p {
                     margin-bottom: 15px;
                     line-height: 1.6;
                     font-size: 14px;
-                    color: #000000;
+                    color: #334155;
                   }
                   #pv-content .markdown-body h1, 
                   #pv-content .markdown-body h2, 
                   #pv-content .markdown-body h3 {
-                    color: #000000;
+                    color: #1e3a8a;
                     margin-bottom: 15px;
                     margin-top: 20px;
                     font-size: 16px;
                   }
                   #pv-content .markdown-body strong {
                     font-weight: bold;
-                    color: #000000;
+                    color: #0f172a;
                   }
                 `}</style>
 
-                {/* Header Pro (Flexbox) */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000000', paddingBottom: '15px', marginBottom: '30px' }}>
-                  <div style={{ textAlign: 'left', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000' }}>
+                {/* Official Header */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #e2e8f0', paddingBottom: '15px', marginBottom: '20px' }}>
+                  <div style={{ textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0f172a', width: '30%' }}>
                     <p style={{ margin: '2px 0' }}>Royaume du Maroc</p>
                     <p style={{ margin: '2px 0' }}>Ministère de l'Intérieur</p>
+                    <p style={{ margin: '2px 0' }}>Préfecture de Casablanca</p>
                   </div>
-                  <div dir="rtl" style={{ textAlign: 'right', fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>
+                  <div style={{ width: '50px', height: '50px', backgroundColor: '#f8fafc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
+                    <Shield style={{ width: '24px', height: '24px', color: '#F4C430' }} />
+                  </div>
+                  <div dir="rtl" style={{ textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0f172a', width: '30%' }}>
                     <p style={{ margin: '2px 0' }}>المملكة المغربية</p>
                     <p style={{ margin: '2px 0' }}>وزارة الداخلية</p>
+                    <p style={{ margin: '2px 0' }}>عمالة الدار البيضاء</p>
                   </div>
                 </div>
 
-                {/* Bloc Central */}
-                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
-                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', margin: '0' }}>
-                    ATTESTATION ADMINISTRATIVE
-                  </h4>
+                {/* Title */}
+                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+                  <h4 style={{ fontSize: '20px', fontWeight: '900', textTransform: 'uppercase', color: '#1e3a8a', margin: '0 0 10px 0', letterSpacing: '1px' }}>{docType.toUpperCase()}</h4>
+                  <div style={{ height: '2px', width: '60px', backgroundColor: '#F4C430', margin: '0 auto' }} />
+                </div>
+
+                {/* Encadré Certifie */}
+                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px', color: '#0f172a', marginBottom: '20px', padding: '10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
+                  CERTIFIE PAR LA PRÉSENTE QUE :
                 </div>
 
                 {/* Content */}
-                <div className="markdown-body" style={{ marginBottom: '200px' }}>
-                  <ReactMarkdown>{cleanContent}</ReactMarkdown>
+                <div className="markdown-body" style={{ marginBottom: '150px' }}>
+                  <ReactMarkdown>{generatedContent}</ReactMarkdown>
                 </div>
 
-                {/* Footer Fixe */}
-                <div style={{ position: 'absolute', bottom: '40px', left: '40px', right: '40px' }}>
-                  {/* Date et Lieu Dynamiques */}
-                  <div style={{ textAlign: 'right', marginBottom: '30px' }}>
-                    <p style={{ fontSize: '14px', color: '#000000', margin: '0' }}>
-                      Fait à Casablanca, le {new Date().toLocaleDateString('fr-FR')}
-                    </p>
+                {/* Footer (Absolute Bottom) */}
+                <div style={{ position: 'absolute', bottom: '50px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #e2e8f0', paddingTop: '20px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    <div style={{ padding: '4px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px', width: 'fit-content' }}>
+                      <QRCodeCanvas value={`https://e-territoire.ma/verify/${Date.now()}`} size={70} />
+                    </div>
+                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>Réf: {Date.now().toString().slice(-6)}</span>
                   </div>
 
-                  {/* QR Code et Signature */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                      <div style={{ padding: '4px', backgroundColor: '#ffffff', border: '1px solid #000000', width: 'fit-content' }}>
-                        <QRCodeCanvas value="https://e-territoire-ai.vercel.app/" size={80} />
-                      </div>
+                  <div style={{ textAlign: 'center', position: 'relative', minWidth: '250px' }}>
+                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0' }}>Fait le {new Date().toLocaleDateString('fr-FR')}</p>
+                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0' }}>Signé électroniquement par :</p>
+                    <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e3a8a', margin: '0' }}>{user?.full_name || 'Fonctionnaire Autorisé'}</p>
+                    <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 40px 0' }}>{user?.grade || 'Administrateur'}</p>
+
+                    {/* Signature Cursive */}
+                    <div
+                      style={{ fontSize: '32px', color: '#1e40af', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: 'rotate(-5deg) translateX(-50%)', position: 'absolute', bottom: '0', left: '50%', whiteSpace: 'nowrap' }}
+                    >
+                      {user?.full_name || 'Signature'}
                     </div>
-                    
-                    <div style={{ textAlign: 'center', minWidth: '200px', position: 'relative' }}>
-                      <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 40px 0' }}>L'Autorité Compétente</p>
-                      
-                      {/* Signature Cursive */}
-                      <div 
-                        style={{ fontSize: '24px', color: '#000000', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: 'rotate(-5deg) translateX(-50%)', position: 'absolute', bottom: '0', left: '50%', whiteSpace: 'nowrap' }}
-                      >
-                        {user?.full_name || 'Signature'}
+
+                    {/* CSS Seal */}
+                    <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '70px', height: '70px', border: '4px double #dc2626', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(12deg)', opacity: 0.7, pointerEvents: 'none' }}>
+                      <div style={{ fontSize: '6px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.2', color: '#dc2626' }}>
+                        Royaume du Maroc<br />
+                        <span style={{ fontSize: '10px' }}>★</span><br />
+                        Approuvé
                       </div>
                     </div>
                   </div>
+                </div>
+
+                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', opacity: 0.03, pointerEvents: 'none' }}>
+                  <h1 style={{ fontSize: '120px', fontWeight: '900', color: '#1e3a8a', margin: 0 }}>DRAFT</h1>
                 </div>
               </div>
 
               <div className="absolute bottom-4 right-4 z-10">
-                <button 
+                <button
                   onClick={downloadPDF}
                   className="p-3 bg-[var(--color-majorelle)] text-white rounded-full shadow-xl hover:scale-110 transition-transform"
                   title="Télécharger le PV (PDF)"
