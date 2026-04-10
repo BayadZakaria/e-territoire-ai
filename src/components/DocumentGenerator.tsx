@@ -4,8 +4,7 @@ import { FileOutput, Download, CheckCircle2, Shield, QrCode, FileText } from 'lu
 import { cn } from '../lib/utils';
 import { generateDocumentDraft } from '../services/aiService';
 import ReactMarkdown from 'react-markdown';
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
+import html2pdf from 'html2pdf.js/dist/html2pdf.bundle.min.js';
 import { QRCodeCanvas } from 'qrcode.react';
 import { UserProfile } from '../types';
 
@@ -21,84 +20,54 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
   const handleGenerate = async () => {
     if (!details.trim() && !docType) return;
     setGenerating(true);
-
     try {
       const content = await generateDocumentDraft(docType, details, i18n.language);
-      if (content) {
-        setGeneratedContent(content);
-        setPreview(true);
-      }
+      setGeneratedContent(content || "Erreur lors de la génération.");
+      setPreview(true);
     } catch (error) {
-      console.error("Erreur API", error);
+      console.error(error);
+      setGeneratedContent("Une erreur est survenue lors de la génération du document.");
+      setPreview(true);
     } finally {
       setGenerating(false);
     }
   };
 
   const downloadPDF = () => {
-    console.log('1. Initialisation du téléchargement PDF...');
-    try {
-      const element = document.getElementById('pv-content');
-      if (!element) {
-        alert("Erreur : L'élément #pv-content est introuvable sur la page !");
-        console.error('Élément #pv-content introuvable.');
-        return;
-      }
-      console.log('2. Élément #pv-content trouvé :', element);
+    const element = document.getElementById('pv-content');
+    if (!element) return;
 
-      const opt = {
-        margin: [15, 15, 15, 15] as [number, number, number, number],
-        filename: `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
-        image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: {
-          scale: 2,
-          useCORS: true,
-          letterRendering: true,
-          logging: true,
-          onclone: (clonedDoc: Document) => {
-            console.log('3. Clonage du DOM réussi, nettoyage des styles oklch...');
-            // Suppression des styles globaux qui causent le crash oklch
-            const styles = clonedDoc.querySelectorAll('head style, head link[rel="stylesheet"]');
-            styles.forEach(s => s.remove());
+    const opt = {
+      margin: [15, 15, 15, 15] as [number, number, number, number],
+      filename: `PV_${docType.replace(/\s+/g, '_')}_${new Date().getTime()}.pdf`,
+      image: { type: 'jpeg' as const, quality: 0.98 },
+      html2canvas: {
+        scale: 2,
+        useCORS: true,
+        letterRendering: true,
+        logging: true,
+        onclone: (clonedDoc: Document) => {
+          // FIX ANTI-CRASH OKLCH : Supprimer les styles globaux (Tailwind) du clone
+          // html2canvas plante s'il lit des variables CSS contenant oklch()
+          const styles = clonedDoc.querySelectorAll('head style, head link[rel="stylesheet"]');
+          styles.forEach(s => s.remove());
 
-            // Remplacement dynamique des couleurs oklch par HEX dans le DOM cloné
-            const allElements = clonedDoc.getElementById('pv-content')?.getElementsByTagName('*');
-            if (allElements) {
-              for (let i = 0; i < allElements.length; i++) {
-                const el = allElements[i] as HTMLElement;
-                // Forcer les couleurs de base en HEX pour écraser tout héritage oklch
-                if (el.style.color && el.style.color.includes('oklch')) el.style.color = '#000000';
-                if (el.style.backgroundColor && el.style.backgroundColor.includes('oklch')) el.style.backgroundColor = '#ffffff';
-                if (el.style.borderColor && el.style.borderColor.includes('oklch')) el.style.borderColor = '#000000';
-
-                // Sécurité supplémentaire pour les bordures
-                if (!el.style.borderColor) el.style.borderColor = '#000000';
-              }
+          // Forcer les bordures en HEX sur tous les éléments pour éviter l'héritage oklch
+          const allElements = clonedDoc.getElementById('pv-content')?.getElementsByTagName('*');
+          if (allElements) {
+            for (let i = 0; i < allElements.length; i++) {
+              const el = allElements[i] as HTMLElement;
+              el.style.borderColor = '#000000';
             }
-            console.log('4. Nettoyage du DOM cloné terminé.');
           }
-        },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
-      };
-
-      console.log('5. Lancement de html2pdf...');
-      setTimeout(() => {
-        try {
-          html2pdf().set(opt).from(element).save().then(() => {
-            console.log('6. PDF généré et téléchargé avec succès !');
-          }).catch((err: any) => {
-            console.error('Erreur lors de la génération html2pdf :', err);
-            alert('Erreur lors de la génération du PDF. Consultez la console.');
-          });
-        } catch (err) {
-          console.error('Erreur critique dans setTimeout html2pdf :', err);
         }
-      }, 500);
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+    };
 
-    } catch (error) {
-      console.error('Erreur globale dans downloadPDF :', error);
-      alert('Une erreur inattendue est survenue lors de la préparation du PDF.');
-    }
+    setTimeout(() => {
+      html2pdf().set(opt).from(element).save();
+    }, 500);
   };
 
   // Nettoyage du contenu généré par l'IA pour supprimer les dates/lieux fixes
@@ -260,14 +229,13 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
                 </div>
               </div>
 
-              <div className="absolute bottom-4 right-4 z-[100] pointer-events-auto">
+              <div className="absolute bottom-4 right-4 z-10">
                 <button
                   onClick={downloadPDF}
-                  className="p-4 bg-[var(--color-majorelle)] text-white rounded-full shadow-2xl hover:scale-110 transition-transform cursor-pointer flex items-center justify-center"
+                  className="p-3 bg-[var(--color-majorelle)] text-white rounded-full shadow-xl hover:scale-110 transition-transform"
                   title="Télécharger le PV (PDF)"
-                  style={{ zIndex: 100 }}
                 >
-                  <Download className="w-6 h-6" />
+                  <Download className="w-5 h-5" />
                 </button>
               </div>
             </div>
