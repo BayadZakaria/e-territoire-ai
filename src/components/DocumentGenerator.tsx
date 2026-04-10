@@ -22,28 +22,12 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
     if (!details.trim() && !docType) return;
     setGenerating(true);
 
-    // Contenu de secours (Fallback) ultra-rapide
-    const fallbackContent = `
-Nous soussignés, l'Autorité Compétente, certifions par la présente que :
-
-Monsieur : **ZAKARIA BAYAD**  
-Titulaire de la CIN N° : **BK9876**
-
-Est valablement enregistré(e) dans nos registres administratifs. Cette attestation administrative est délivrée à l'intéressé(e) sur sa demande pour servir et valoir ce que de droit.
-`;
-
     try {
-      // Promise.race pour forcer une réponse instantanée (max 3 secondes)
-      const fetchPromise = generateDocumentDraft(docType, details, i18n.language);
-      const timeoutPromise = new Promise<string>((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 3000)
-      );
-
-      const content = await Promise.race([fetchPromise, timeoutPromise]);
-      setGeneratedContent(content || fallbackContent);
+      const content = await generateDocumentDraft(docType, details, i18n.language);
+      setGeneratedContent(content || "Erreur : Aucun contenu généré.");
     } catch (error) {
-      console.warn("Réseau lent ou erreur IA, activation du mode hors-ligne (Fallback).", error);
-      setGeneratedContent(fallbackContent);
+      console.error("Erreur lors de la génération IA :", error);
+      setGeneratedContent("Une erreur est survenue lors de la génération du document.");
     } finally {
       setPreview(true);
       setGenerating(false);
