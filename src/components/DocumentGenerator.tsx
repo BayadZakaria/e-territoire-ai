@@ -117,96 +117,68 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         <div className="relative">
           {preview ? (
             <div className="bg-white rounded-xl shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
-              <div id="pv-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', padding: '20px', position: 'relative', minHeight: '1050px', boxSizing: 'border-box', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', fontFamily: 'Arial, sans-serif' } as React.CSSProperties}>
-                <style>{`
-                  #pv-content .markdown-body p {
-                    margin-bottom: 15px;
-                    line-height: 1.6;
-                    font-size: 14px;
-                    color: #334155;
-                  }
-                  #pv-content .markdown-body h1, 
-                  #pv-content .markdown-body h2, 
-                  #pv-content .markdown-body h3 {
-                    color: #1e3a8a;
-                    margin-bottom: 15px;
-                    margin-top: 20px;
-                    font-size: 16px;
-                  }
-                  #pv-content .markdown-body strong {
-                    font-weight: bold;
-                    color: #0f172a;
-                  }
-                `}</style>
-
+              <div id="pv-content" className="p-8 flex flex-col gap-6 relative" style={{ backgroundColor: '#ffffff', color: '#0f172a', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact' } as React.CSSProperties}>
                 {/* Official Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #e2e8f0', paddingBottom: '15px', marginBottom: '20px' }}>
-                  <div style={{ textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0f172a', width: '30%' }}>
-                    <p style={{ margin: '2px 0' }}>Royaume du Maroc</p>
-                    <p style={{ margin: '2px 0' }}>Ministère de l'Intérieur</p>
-                    <p style={{ margin: '2px 0' }}>Préfecture de Casablanca</p>
+                <div className="flex justify-between items-start pb-4" style={{ borderBottom: '1px solid #e2e8f0' }}>
+                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center" style={{ color: '#0f172a' }}>
+                    <p>Royaume du Maroc</p>
+                    <p>Ministère de l'Intérieur</p>
+                    <p>Préfecture de Casablanca</p>
                   </div>
-                  <div style={{ width: '50px', height: '50px', backgroundColor: '#f8fafc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
-                    <Shield style={{ width: '24px', height: '24px', color: '#F4C430' }} />
+                  <div className="w-12 h-12 rounded-full flex items-center justify-center" style={{ backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                    <Shield className="w-6 h-6" style={{ color: '#F4C430' }} />
                   </div>
-                  <div dir="rtl" style={{ textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0f172a', width: '30%' }}>
-                    <p style={{ margin: '2px 0' }}>المملكة المغربية</p>
-                    <p style={{ margin: '2px 0' }}>وزارة الداخلية</p>
-                    <p style={{ margin: '2px 0' }}>عمالة الدار البيضاء</p>
+                  <div className="text-[8px] font-bold uppercase tracking-tighter text-center" dir="rtl" style={{ color: '#0f172a' }}>
+                    <p>المملكة المغربية</p>
+                    <p>وزارة الداخلية</p>
+                    <p>عمالة الدار البيضاء</p>
                   </div>
                 </div>
 
-                {/* Title */}
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <h4 style={{ fontSize: '20px', fontWeight: '900', textTransform: 'uppercase', color: '#1e3a8a', margin: '0 0 10px 0', letterSpacing: '1px' }}>{docType.toUpperCase()}</h4>
-                  <div style={{ height: '2px', width: '60px', backgroundColor: '#F4C430', margin: '0 auto' }} />
+                <div className="text-center space-y-2">
+                  <h4 className="text-lg font-black uppercase tracking-widest" style={{ color: '#1e3a8a' }}>{docType.toUpperCase()}</h4>
+                  <div className="h-0.5 w-16 mx-auto" style={{ backgroundColor: '#F4C430' }} />
                 </div>
 
-                {/* Encadré Certifie */}
-                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px', color: '#0f172a', marginBottom: '20px', padding: '10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-                  CERTIFIE PAR LA PRÉSENTE QUE :
-                </div>
-
-                {/* Content */}
-                <div className="markdown-body" style={{ marginBottom: '150px' }}>
+                <div className="space-y-4 text-xs leading-relaxed markdown-body" style={{ color: '#334155' }}>
                   <ReactMarkdown>{generatedContent}</ReactMarkdown>
                 </div>
 
-                {/* Footer (Absolute Bottom) */}
-                <div style={{ position: 'absolute', bottom: '50px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #e2e8f0', paddingTop: '20px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ padding: '4px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px', width: 'fit-content' }}>
-                      <QRCodeCanvas value={`https://e-territoire.ma/verify/${Date.now()}`} size={70} />
+                <div className="mt-12 pt-8 flex justify-between items-end break-inside-avoid" style={{ borderTop: '1px solid #e2e8f0' }}>
+                  <div className="flex flex-col gap-2">
+                    <div className="p-1 rounded" style={{ backgroundColor: '#ffffff', border: '1px solid #e2e8f0' }}>
+                      <QRCodeCanvas value={`https://e-territoire.ma/verify/${Date.now()}`} size={64} />
                     </div>
-                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>Réf: {Date.now().toString().slice(-6)}</span>
+                    <span className="text-[6px]" style={{ color: '#94a3b8' }}>Réf: {Date.now().toString().slice(-6)}</span>
                   </div>
 
-                  <div style={{ textAlign: 'center', position: 'relative', minWidth: '250px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0' }}>Fait le {new Date().toLocaleDateString('fr-FR')}</p>
-                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0' }}>Signé électroniquement par :</p>
-                    <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e3a8a', margin: '0' }}>{user?.full_name || 'Fonctionnaire Autorisé'}</p>
-                    <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 40px 0' }}>{user?.grade || 'Administrateur'}</p>
+                  <div className="text-center relative min-w-[200px]">
+                    <p className="text-[10px] font-bold mb-1" style={{ color: '#475569' }}>Fait le {new Date().toLocaleDateString('fr-FR')}</p>
+                    <p className="text-[10px] font-bold mb-1" style={{ color: '#475569' }}>Signé électroniquement par :</p>
+                    <p className="text-sm font-bold" style={{ color: '#1e3a8a' }}>{user?.full_name || 'Fonctionnaire Autorisé'}</p>
+                    <p className="text-[10px] mb-6" style={{ color: '#64748b' }}>{user?.grade || 'Administrateur'}</p>
 
                     {/* Signature Cursive */}
                     <div
-                      style={{ fontSize: '32px', color: '#1e40af', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: 'rotate(-5deg) translateX(-50%)', position: 'absolute', bottom: '0', left: '50%', whiteSpace: 'nowrap' }}
+                      className="text-3xl absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-4"
+                      style={{ color: '#1e40af', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: "rotate(-5deg) translateX(-50%)" }}
                     >
                       {user?.full_name || 'Signature'}
                     </div>
 
                     {/* CSS Seal */}
-                    <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '70px', height: '70px', border: '4px double #dc2626', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(12deg)', opacity: 0.7, pointerEvents: 'none' }}>
-                      <div style={{ fontSize: '6px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.2', color: '#dc2626' }}>
+                    <div className="absolute top-0 right-[-20px] w-16 h-16 border-4 border-double rounded-full flex items-center justify-center rotate-12 pointer-events-none" style={{ borderColor: '#dc2626', opacity: 0.7 }}>
+                      <div className="text-[5px] font-bold uppercase text-center leading-tight" style={{ color: '#dc2626' }}>
                         Royaume du Maroc<br />
-                        <span style={{ fontSize: '10px' }}>★</span><br />
+                        <span className="text-[8px]">★</span><br />
                         Approuvé
                       </div>
                     </div>
                   </div>
                 </div>
 
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', opacity: 0.03, pointerEvents: 'none' }}>
-                  <h1 style={{ fontSize: '120px', fontWeight: '900', color: '#1e3a8a', margin: 0 }}>DRAFT</h1>
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[-30deg] pointer-events-none" style={{ opacity: 0.05 }}>
+                  <h1 className="text-8xl font-black" style={{ color: '#6050DC' }}>DRAFT</h1>
                 </div>
               </div>
 
