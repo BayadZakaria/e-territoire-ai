@@ -50,6 +50,11 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
     }, 500);
   };
 
+  // Nettoyage du contenu généré par l'IA pour supprimer les dates/lieux fixes
+  const cleanContent = generatedContent
+    .replace(/Fait à .*, le .*/gi, '')
+    .replace(/24 Mai 2024/gi, '');
+
   return (
     <div className="bg-white border border-slate-200 rounded-3xl p-8 flex flex-col gap-8 shadow-sm">
       <div className={cn("flex items-center gap-4", isRtl ? "flex-row-reverse" : "flex-row")}>
@@ -117,96 +122,90 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
         <div className="relative">
           {preview ? (
             <div className="bg-white rounded-xl shadow-2xl text-slate-900 border border-slate-200 min-h-[400px] flex flex-col relative overflow-hidden">
-              <div id="pv-content" style={{ backgroundColor: '#ffffff', color: '#0f172a', padding: '20px', position: 'relative', minHeight: '1050px', boxSizing: 'border-box', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', fontFamily: 'Arial, sans-serif' } as React.CSSProperties}>
+              <div id="pv-content" style={{ backgroundColor: '#ffffff', color: '#000000', padding: '40px', position: 'relative', minHeight: '1050px', boxSizing: 'border-box', WebkitPrintColorAdjust: 'exact', printColorAdjust: 'exact', fontFamily: 'Arial, sans-serif' } as React.CSSProperties}>
                 <style>{`
                   #pv-content .markdown-body p {
                     margin-bottom: 15px;
                     line-height: 1.6;
                     font-size: 14px;
-                    color: #334155;
+                    color: #000000;
                   }
                   #pv-content .markdown-body h1, 
                   #pv-content .markdown-body h2, 
                   #pv-content .markdown-body h3 {
-                    color: #1e3a8a;
+                    color: #000000;
                     margin-bottom: 15px;
                     margin-top: 20px;
                     font-size: 16px;
                   }
                   #pv-content .markdown-body strong {
                     font-weight: bold;
-                    color: #0f172a;
+                    color: #000000;
                   }
                 `}</style>
 
-                {/* Official Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #e2e8f0', paddingBottom: '15px', marginBottom: '20px' }}>
-                  <div style={{ textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0f172a', width: '30%' }}>
+                {/* Header Pro (Flexbox) */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', borderBottom: '2px solid #000000', paddingBottom: '15px', marginBottom: '30px' }}>
+                  <div style={{ textAlign: 'left', fontSize: '12px', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000' }}>
                     <p style={{ margin: '2px 0' }}>Royaume du Maroc</p>
                     <p style={{ margin: '2px 0' }}>Ministère de l'Intérieur</p>
-                    <p style={{ margin: '2px 0' }}>Préfecture de Casablanca</p>
                   </div>
-                  <div style={{ width: '50px', height: '50px', backgroundColor: '#f8fafc', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #e2e8f0' }}>
-                    <Shield style={{ width: '24px', height: '24px', color: '#F4C430' }} />
-                  </div>
-                  <div dir="rtl" style={{ textAlign: 'center', fontSize: '10px', fontWeight: 'bold', textTransform: 'uppercase', color: '#0f172a', width: '30%' }}>
+                  <div dir="rtl" style={{ textAlign: 'right', fontSize: '12px', fontWeight: 'bold', color: '#000000' }}>
                     <p style={{ margin: '2px 0' }}>المملكة المغربية</p>
                     <p style={{ margin: '2px 0' }}>وزارة الداخلية</p>
-                    <p style={{ margin: '2px 0' }}>عمالة الدار البيضاء</p>
                   </div>
                 </div>
 
-                {/* Title */}
-                <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-                  <h4 style={{ fontSize: '20px', fontWeight: '900', textTransform: 'uppercase', color: '#1e3a8a', margin: '0 0 10px 0', letterSpacing: '1px' }}>{docType.toUpperCase()}</h4>
-                  <div style={{ height: '2px', width: '60px', backgroundColor: '#F4C430', margin: '0 auto' }} />
+                {/* Bloc Central */}
+                <div style={{ textAlign: 'center', marginBottom: '30px' }}>
+                  <h4 style={{ fontSize: '18px', fontWeight: 'bold', textTransform: 'uppercase', color: '#000000', margin: '0' }}>
+                    ATTESTATION ADMINISTRATIVE
+                  </h4>
                 </div>
 
-                {/* Encadré Certifie */}
-                <div style={{ textAlign: 'center', fontWeight: 'bold', fontSize: '14px', color: '#0f172a', marginBottom: '20px', padding: '10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '4px' }}>
-                  CERTIFIE PAR LA PRÉSENTE QUE :
+                {/* Données Utilisateur */}
+                <div style={{ margin: '20px 0', padding: '20px', border: '1px solid #000000', backgroundColor: '#f9f9f9' }}>
+                  <p style={{ margin: '0 0 10px 0', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
+                    Monsieur : <span style={{ fontWeight: 'normal' }}>{user?.full_name?.toUpperCase() || 'ZAKARIA BAYAD'}</span>
+                  </p>
+                  <p style={{ margin: '0', fontSize: '14px', fontWeight: 'bold', color: '#000000' }}>
+                    CIN : <span style={{ fontWeight: 'normal' }}>{user?.cnie || 'BK9876'}</span>
+                  </p>
                 </div>
 
                 {/* Content */}
-                <div className="markdown-body" style={{ marginBottom: '150px' }}>
-                  <ReactMarkdown>{generatedContent}</ReactMarkdown>
+                <div className="markdown-body" style={{ marginBottom: '200px' }}>
+                  <ReactMarkdown>{cleanContent}</ReactMarkdown>
                 </div>
 
-                {/* Footer (Absolute Bottom) */}
-                <div style={{ position: 'absolute', bottom: '50px', left: '20px', right: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', borderTop: '2px solid #e2e8f0', paddingTop: '20px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                    <div style={{ padding: '4px', backgroundColor: '#ffffff', border: '1px solid #e2e8f0', borderRadius: '4px', width: 'fit-content' }}>
-                      <QRCodeCanvas value={`https://e-territoire.ma/verify/${Date.now()}`} size={70} />
-                    </div>
-                    <span style={{ fontSize: '10px', color: '#94a3b8' }}>Réf: {Date.now().toString().slice(-6)}</span>
+                {/* Footer Fixe */}
+                <div style={{ position: 'absolute', bottom: '40px', left: '40px', right: '40px' }}>
+                  {/* Date et Lieu Dynamiques */}
+                  <div style={{ textAlign: 'right', marginBottom: '30px' }}>
+                    <p style={{ fontSize: '14px', color: '#000000', margin: '0' }}>
+                      Fait à Casablanca, le {new Date().toLocaleDateString('fr-FR')}
+                    </p>
                   </div>
 
-                  <div style={{ textAlign: 'center', position: 'relative', minWidth: '250px' }}>
-                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0' }}>Fait le {new Date().toLocaleDateString('fr-FR')}</p>
-                    <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#475569', margin: '0 0 4px 0' }}>Signé électroniquement par :</p>
-                    <p style={{ fontSize: '14px', fontWeight: 'bold', color: '#1e3a8a', margin: '0' }}>{user?.full_name || 'Fonctionnaire Autorisé'}</p>
-                    <p style={{ fontSize: '10px', color: '#64748b', margin: '4px 0 40px 0' }}>{user?.grade || 'Administrateur'}</p>
-
-                    {/* Signature Cursive */}
-                    <div
-                      style={{ fontSize: '32px', color: '#1e40af', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: 'rotate(-5deg) translateX(-50%)', position: 'absolute', bottom: '0', left: '50%', whiteSpace: 'nowrap' }}
-                    >
-                      {user?.full_name || 'Signature'}
+                  {/* QR Code et Signature */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                      <div style={{ padding: '4px', backgroundColor: '#ffffff', border: '1px solid #000000', width: 'fit-content' }}>
+                        <QRCodeCanvas value="https://e-territoire-ai.vercel.app/" size={80} />
+                      </div>
                     </div>
 
-                    {/* CSS Seal */}
-                    <div style={{ position: 'absolute', top: '-10px', right: '-10px', width: '70px', height: '70px', border: '4px double #dc2626', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', transform: 'rotate(12deg)', opacity: 0.7, pointerEvents: 'none' }}>
-                      <div style={{ fontSize: '6px', fontWeight: 'bold', textTransform: 'uppercase', textAlign: 'center', lineHeight: '1.2', color: '#dc2626' }}>
-                        Royaume du Maroc<br />
-                        <span style={{ fontSize: '10px' }}>★</span><br />
-                        Approuvé
+                    <div style={{ textAlign: 'center', minWidth: '200px', position: 'relative' }}>
+                      <p style={{ fontSize: '12px', fontWeight: 'bold', color: '#000000', margin: '0 0 40px 0' }}>L'Autorité Compétente</p>
+
+                      {/* Signature Cursive */}
+                      <div
+                        style={{ fontSize: '24px', color: '#000000', fontFamily: "'Brush Script MT', 'Lucida Handwriting', cursive", transform: 'rotate(-5deg) translateX(-50%)', position: 'absolute', bottom: '0', left: '50%', whiteSpace: 'nowrap' }}
+                      >
+                        {user?.full_name || 'Signature'}
                       </div>
                     </div>
                   </div>
-                </div>
-
-                <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%) rotate(-30deg)', opacity: 0.03, pointerEvents: 'none' }}>
-                  <h1 style={{ fontSize: '120px', fontWeight: '900', color: '#1e3a8a', margin: 0 }}>DRAFT</h1>
                 </div>
               </div>
 
