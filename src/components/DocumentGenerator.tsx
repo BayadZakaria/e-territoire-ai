@@ -24,12 +24,13 @@ export const DocumentGenerator = ({ user }: { user?: UserProfile }) => {
 
     try {
       const content = await generateDocumentDraft(docType, details, i18n.language);
-      setGeneratedContent(content || "Erreur : Aucun contenu généré.");
+      if (content) {
+        setGeneratedContent(content);
+        setPreview(true);
+      }
     } catch (error) {
-      console.error("Erreur lors de la génération IA :", error);
-      setGeneratedContent("Une erreur est survenue lors de la génération du document.");
+      console.error("Erreur API", error);
     } finally {
-      setPreview(true);
       setGenerating(false);
     }
   };
