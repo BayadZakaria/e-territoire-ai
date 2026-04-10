@@ -42,7 +42,7 @@ Tu dois appliquer rigoureusement ces règles de gouvernance pour chaque profil :
 export const analyzeDocument = async (base64Image: string, prompt: string) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const genAI = new GoogleGenAI({ apiKey });
-  const model = "gemini-1.5-flash";
+  const model = "gemini-3-flash-preview";
 
   const imagePart = {
     inlineData: {
@@ -68,7 +68,7 @@ export const analyzeDocument = async (base64Image: string, prompt: string) => {
 export const askLegalQuestion = async (question: string, language: string, history: { role: string, content: string }[] = [], contextChunks: string[] = []) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const genAI = new GoogleGenAI({ apiKey });
-  const model = "gemini-1.5-flash";
+  const model = "gemini-3-flash-preview";
 
   let systemInstruction = getSystemInstruction(language);
 
@@ -102,7 +102,7 @@ export const askLegalQuestion = async (question: string, language: string, histo
 export const generateDocumentDraft = async (docType: string, details: string, language: string) => {
   const apiKey = process.env.GEMINI_API_KEY;
   const genAI = new GoogleGenAI({ apiKey });
-  const model = "gemini-1.5-flash";
+  const model = "gemini-3-flash-preview";
 
   const systemInstruction = getSystemInstruction(language);
 
